@@ -1,0 +1,546 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Tech Pulse AI - 2D Virtual Office HQ</title>
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🏢</text></svg>">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Fira+Code:wght@400;500;600&family=Outfit:wght@300;400;600;700;800&family=Press+Start+2P&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/office.css') }}">
+</head>
+<body>
+    <div id="app" class="office-app">
+        <!-- Top Control Bar (Compact) -->
+        <header class="top-bar">
+            <div class="brand">
+                <div class="status-pulse-dot"></div>
+                <div class="brand-text">
+                    <h1>TECH PULSE <span class="badge-2d">2D VIRTUAL OFFICE</span></h1>
+                    <span class="sub-text">Autonomous AI Content Engine & Broadcast HQ</span>
+                </div>
+            </div>
+
+            <!-- Right-Aligned Ticker & Actions -->
+            <div class="header-right-group">
+                <!-- Live Office Metrics Chips (Encapsulated Capsule Metric Chips) -->
+                <div class="office-ticker">
+                    <div class="metric-chip chip-agents" title="Active Agents Count">
+                        <span class="chip-icon">🤖</span>
+                        <span class="chip-label">AGENTS:</span>
+                        <span class="chip-val text-green">4 Active</span>
+                    </div>
+                    <div class="metric-chip chip-radar" title="Active RSS News Radar Feeds">
+                        <span class="chip-icon">📡</span>
+                        <span class="chip-label">RADAR:</span>
+                        <span id="tickerNewsCount" class="chip-val text-blue">9 Feeds</span>
+                    </div>
+                    <div class="metric-chip chip-model" title="Connected AI Engine Model">
+                        <span class="chip-icon">✨</span>
+                        <span class="chip-label">MODEL:</span>
+                        <span id="tickerModelName" class="chip-val text-purple">gemini-3.8-flash</span>
+                    </div>
+                    <div class="metric-chip chip-linkedin" title="LinkedIn API Gateway Status">
+                        <span class="chip-icon">💼</span>
+                        <span class="chip-label">LINKEDIN:</span>
+                        <span id="tickerLinkedInStatus" class="chip-val text-cyan">Checking...</span>
+                    </div>
+                </div>
+
+                <!-- Header Action Controls with Visual Safety Divider & HUD View Mode Dock -->
+                <div class="header-actions">
+                    <div class="view-mode-dock" id="viewModeDock">
+                        <button type="button" class="mode-btn active" id="btnModeBalanced" title="Tampilan Seimbang Standard">⚖️ Normal</button>
+                        <button type="button" class="mode-btn" id="btnModeSimulation" title="Simulasi Imersif (Layar Penuh)">🎮 Sim</button>
+                        <button type="button" class="mode-btn" id="btnModeDev" title="Analytics & Developer Tools">📊 Dev</button>
+                    </div>
+                    <button id="btnAutoPilot" class="btn btn-secondary pill btn-sm" title="Toggle Auto-Pilot Routine">
+                        <span class="icon">🤖</span> <span class="text">Auto-Pilot: OFF</span>
+                    </button>
+                    <button id="btnSound" class="btn btn-secondary pill btn-sm" title="Toggle Sound FX">
+                        <span class="icon">🔊</span> <span class="text">Sound: ON</span>
+                    </button>
+                    <div class="action-divider" title="Pemisah Aksi Penting"></div>
+                    <button id="btnWorkflow" class="btn btn-primary glow-button pill btn-sm" title="Jalankan Seluruh Pipeline Konten AI">
+                        <span class="icon">⚡</span> Run Pipeline
+                    </button>
+                </div>
+            </div>
+        </header>
+
+        <!-- Main Office Layout Area -->
+        <main class="office-main">
+            <!-- Left Workspace Canvas Container -->
+            <div class="office-viewport-card">
+                <div class="viewport-header">
+                    <div class="view-title">
+                        <span class="pixel-icon">🏢</span> HQ FLOOR PLAN — LIVE 2D SIMULATION
+                    </div>
+                    <div class="view-controls">
+                        <span class="room-ambient-badge standby" id="roomAmbientBadge" title="Status Beban Kerja & Pencahayaan Kantor">🌙 Ambient: Standby</span>
+                        <button id="btnChiefPendingNotification" class="btn-chief-pending hidden" onclick="openChiefReviewDrawer()" title="Klik untuk membuka Human-in-the-Loop Content Approval"><span class="bell-ring">🔔</span> <span class="badge-text">1 Pending Draft</span></button>
+                        <span class="time-display" id="officeTime">00:00:00</span>
+                        <div class="view-legend">
+                            <span class="legend-item"><span class="dot scout"></span> Scout</span>
+                            <span class="legend-item"><span class="dot pulse"></span> Pulse</span>
+                            <span class="legend-item"><span class="dot link"></span> Link</span>
+                            <span class="legend-item"><span class="dot boss"></span> Boss</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 2D Canvas Area -->
+                <div class="canvas-container" id="canvasContainer">
+                    <canvas id="officeCanvas" width="1050" height="600"></canvas>
+                    
+                    <!-- Overlay Speech Bubbles Container -->
+                    <div id="speechBubblesOverlay" class="speech-bubbles-overlay"></div>
+                    
+                    <!-- Floating Camera Navigation & Zoom Toolbar (Top-Right) -->
+                    <div class="canvas-camera-toolbar" id="canvasCameraToolbar">
+                        <button type="button" class="cam-btn" id="btnZoomIn" title="Zoom In (+)">➕</button>
+                        <button type="button" class="cam-btn" id="btnZoomOut" title="Zoom Out (-)">➖</button>
+                        <button type="button" class="cam-btn" id="btnZoomReset" title="Reset Zoom (100%)">🔍 100%</button>
+                        <button type="button" class="cam-btn btn-builder-toggle" id="btnToggleBuilder" title="Toggle Spatial Node-Graph Workflow Builder">🏗️ Builder</button>
+                    </div>
+
+                    <!-- Spatial Node-Graph Workflow Builder Palette (Floating Top Bar) -->
+                    <div class="builder-palette hidden" id="builderPalette">
+                        <div class="palette-header">
+                            <span class="palette-icon">🏗️</span>
+                            <span class="palette-title">WORKFLOW BUILDER: DRAG CABLES & PLACE STATIONS</span>
+                            <span class="palette-hint">(Klik port stasiun untuk tarik kabel & ganti topologi)</span>
+                        </div>
+                        <div class="palette-items">
+                            <button type="button" class="palette-item" onclick="spawnNewStation('imagen')" title="Tambahkan Station 5: Imagen 3 Studio (AI Visuals)">
+                                <span class="pi-icon">🎨</span> Station 5: Imagen 3
+                            </button>
+                            <button type="button" class="palette-item" onclick="spawnNewStation('discord')" title="Tambahkan Station 6: Discord Webhook Hub">
+                                <span class="pi-icon">💬</span> Station 6: Discord
+                            </button>
+                            <button type="button" class="palette-item" onclick="spawnNewStation('twitter')" title="Tambahkan Station 7: Twitter / X Broadcaster">
+                                <span class="pi-icon">🐦</span> Station 7: Twitter / X
+                            </button>
+                            <button type="button" class="palette-item btn-reset-topology" onclick="resetPipelineTopology()" title="Reset topologi kabel ke konfigurasi bawaan">
+                                🔄 Reset Topologi
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- Retro Radar Minimap (Bottom-Left RTS Nav) -->
+                    <div class="radar-minimap-card" id="radarMinimapCard" title="Retro Radar Minimap — Klik untuk mengarahkan kamera">
+                        <div class="minimap-header">
+                            <span class="radar-blip"></span>
+                            <span class="minimap-title">RADAR MINIMAP</span>
+                            <span class="minimap-coords" id="minimapCoords">Zoom 1.0x</span>
+                        </div>
+                        <canvas id="minimapCanvas" width="168" height="96"></canvas>
+                    </div>
+
+                    <!-- Floating Navigation Walk Hint Overlay (Bottom-Left Above Minimap) -->
+                    <div class="walk-hint-overlay">
+                        <span class="hint-icon">🎯</span>
+                        <span class="hint-text"><strong>Scroll</strong>: Zoom &nbsp;•&nbsp; <strong>Drag</strong>: Pan Ruang &nbsp;•&nbsp; <strong>Klik</strong>: Karakter/Jalan</span>
+                    </div>
+
+                    <!-- Simplified Floating Hotspot Station Badges -->
+                    <div class="hotspot" style="left: 15.2%; top: 25%;" data-station="scout" title="Klik untuk membuka Desk Scout (Radar)">
+                        <div class="hotspot-badge">Station 1: Radar</div>
+                    </div>
+                    <div class="hotspot" style="left: 42.8%; top: 25%;" data-station="pulse" title="Klik untuk membuka Desk Pulse (Gemini AI)">
+                        <div class="hotspot-badge">Station 2: Gemini AI</div>
+                    </div>
+                    <div class="hotspot" style="left: 70.5%; top: 25%;" data-station="link" title="Klik untuk membuka Desk Link (LinkedIn)">
+                        <div class="hotspot-badge">Station 3: LinkedIn</div>
+                    </div>
+                    <div class="hotspot" style="left: 42.8%; top: 65%;" data-station="boss" title="Klik untuk membuka Chief Editor Desk">
+                        <div class="hotspot-badge">Station 4: Chief Editor</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Right Side Workstations & Pipeline Status -->
+            <aside class="sidebar-panel">
+                <!-- Agent Team Control Buttons -->
+                <div class="panel-card">
+                    <div class="card-header">
+                        <h3><span class="icon">👥</span> ACTIVE AGENTS</h3>
+                        <span class="badge">4 BUTTONS</span>
+                    </div>
+                    <div class="agent-buttons-grid">
+                        <!-- Scout Button -->
+                        <button type="button" class="agent-item-card agent-btn-card" data-agent="scout" title="Pilih Scout untuk berjalan di kanvas">
+                            <div class="agent-btn-top">
+                                <span class="agent-avatar scout-bg">📡</span>
+                                <div class="agent-btn-title">
+                                    <span class="agent-name">Scout</span>
+                                    <span class="agent-role">Radar</span>
+                                </div>
+                                <span class="agent-status-badge idle" id="cardPct_scout">Idle</span>
+                                <span class="btn-station-config" onclick="event.stopPropagation(); openStationModal('scout')" title="Pengaturan & Detail Stasiun Scout">⚙️</span>
+                            </div>
+                            <div class="agent-status-text" id="statusScout">Scanning Feeds...</div>
+                            <div class="agent-card-track">
+                                <div class="agent-card-fill scout-fill" id="cardFill_scout" style="width: 0%;"></div>
+                            </div>
+                        </button>
+                        <!-- Pulse Button -->
+                        <button type="button" class="agent-item-card agent-btn-card" data-agent="pulse" title="Pilih Pulse untuk berjalan di kanvas">
+                            <div class="agent-btn-top">
+                                <span class="agent-avatar pulse-bg">✨</span>
+                                <div class="agent-btn-title">
+                                    <span class="agent-name">Pulse</span>
+                                    <span class="agent-role">Gemini AI</span>
+                                </div>
+                                <span class="agent-status-badge idle" id="cardPct_pulse">Idle</span>
+                                <span class="btn-station-config" onclick="event.stopPropagation(); openStationModal('pulse')" title="Pengaturan & Detail Stasiun Pulse">⚙️</span>
+                            </div>
+                            <div class="agent-status-text" id="statusPulse">Model Standby</div>
+                            <div class="agent-card-track">
+                                <div class="agent-card-fill pulse-fill" id="cardFill_pulse" style="width: 0%;"></div>
+                            </div>
+                        </button>
+                        <!-- Boss Button -->
+                        <button type="button" class="agent-item-card agent-btn-card" data-agent="boss" title="Pilih Boss untuk berjalan di kanvas">
+                            <div class="agent-btn-top">
+                                <span class="agent-avatar boss-bg">👑</span>
+                                <div class="agent-btn-title">
+                                    <span class="agent-name">Boss</span>
+                                    <span class="agent-role">Chief Leader</span>
+                                </div>
+                                <span class="agent-status-badge idle" id="cardPct_boss">Idle</span>
+                                <span class="btn-station-config" onclick="event.stopPropagation(); openStationModal('boss')" title="Pengaturan & Detail Stasiun Boss">⚙️</span>
+                            </div>
+                            <div class="agent-status-text" id="statusBoss">Reviewing Queue</div>
+                            <div class="agent-card-track">
+                                <div class="agent-card-fill boss-fill" id="cardFill_boss" style="width: 0%;"></div>
+                            </div>
+                        </button>
+                        <!-- Link Button -->
+                        <button type="button" class="agent-item-card agent-btn-card" data-agent="link" title="Pilih Link untuk berjalan di kanvas">
+                            <div class="agent-btn-top">
+                                <span class="agent-avatar link-bg">💼</span>
+                                <div class="agent-btn-title">
+                                    <span class="agent-name">Link</span>
+                                    <span class="agent-role">LinkedIn</span>
+                                </div>
+                                <span class="agent-status-badge idle" id="cardPct_link">Idle</span>
+                                <span class="btn-station-config" onclick="event.stopPropagation(); openStationModal('link')" title="Pengaturan & Detail Stasiun Link">⚙️</span>
+                            </div>
+                            <div class="agent-status-text" id="statusLink">Auth Ready</div>
+                            <div class="agent-card-track">
+                                <div class="agent-card-fill link-fill" id="cardFill_link" style="width: 0%;"></div>
+                            </div>
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Gemini AI Token Monitor Widget -->
+                <div class="panel-card token-monitor-card">
+                    <div class="card-header">
+                        <h3><span class="icon">🪙</span> GEMINI TOKEN MONITOR</h3>
+                        <span class="badge badge-purple" id="badgeTokenModel">gemini-3.8-flash</span>
+                    </div>
+                    <div class="token-meter-box">
+                        <div class="meter-labels">
+                            <span class="meter-title">Sisa Kuota Token (Free Tier / Daily):</span>
+                            <span class="meter-val text-green" id="tokenRemainingStat">1,000,000 / 1,000,000</span>
+                        </div>
+                        <div class="progress-bar-bg">
+                            <div class="progress-bar-fill" id="tokenProgressBar" style="width: 100%;"></div>
+                        </div>
+                        <div class="meter-sub">
+                            <span class="text-muted" id="tokenPercentText">100.0% Kuota Tersedia</span>
+                            <span class="tier-tag">Standard 1M Daily Limit</span>
+                        </div>
+                    </div>
+                    <div class="token-grid">
+                        <div class="token-grid-cell">
+                            <span class="tg-label">Input / Prompt:</span>
+                            <span class="tg-val text-blue" id="tgPromptTokens">0 tok</span>
+                        </div>
+                        <div class="token-grid-cell">
+                            <span class="tg-label">Output / Result:</span>
+                            <span class="tg-val text-purple" id="tgOutputTokens">0 tok</span>
+                        </div>
+                        <div class="token-grid-cell">
+                            <span class="tg-label">Permintaan Terakhir:</span>
+                            <span class="tg-val text-yellow" id="tgLastTotalTokens">0 tok</span>
+                        </div>
+                        <div class="token-grid-cell">
+                            <span class="tg-label">Total Sesi Ini:</span>
+                            <span class="tg-val text-cyan" id="tgSessionTokens">0 tok</span>
+                        </div>
+                    </div>
+
+                    <!-- Live Token Cost Estimator Widget -->
+                    <div class="token-cost-box" id="tokenCostBox">
+                        <div class="cost-header-row">
+                            <span class="cost-title">💵 Estimasi Biaya Riil (Gemini Flash):</span>
+                            <span class="cost-value text-green" id="costEstimatorVal">$0.00000 <small class="text-dim" id="costEstimatorIdr">(~Rp 0)</small></span>
+                        </div>
+                        <div class="cost-details-row">
+                            <span class="cost-pricing-note">Tarif: $0.075/1M Input • $0.30/1M Output</span>
+                            <span class="cost-badge-savings">⚡ Hemat 99.8% vs GPT-4o</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Latest News Preview Widget -->
+                <div class="panel-card flex-1">
+                    <div class="card-header">
+                        <h3><span class="icon">📰</span> RADAR TECH NEWS</h3>
+                        <button class="btn-icon" id="btnRefreshNews" title="Fetch Fresh Feeds">🔄</button>
+                    </div>
+                    <div class="news-feed-list" id="newsFeedList">
+                        <div class="empty-state">Klik "Run Full Pipeline" atau tombol refresh untuk mengambil berita terkini...</div>
+                    </div>
+                </div>
+
+                <!-- Developer & Analytics Inspector Panel (Active in Dev Mode) -->
+                <div class="panel-card dev-analytics-card" id="devAnalyticsCard">
+                    <div class="card-header">
+                        <h3><span class="icon">🔬</span> API LATENCY & PAYLOAD</h3>
+                        <span class="badge badge-cyan" id="devStatusBadge">REST Latency</span>
+                    </div>
+                    <div class="latency-grid">
+                        <div class="latency-item">
+                            <span class="latency-lbl">📡 RSS Radar:</span>
+                            <span class="latency-ms text-blue" id="latencyRadar">-- ms</span>
+                        </div>
+                        <div class="latency-item">
+                            <span class="latency-lbl">✨ Gemini AI:</span>
+                            <span class="latency-ms text-purple" id="latencyGemini">-- ms</span>
+                        </div>
+                        <div class="latency-item">
+                            <span class="latency-lbl">💼 LinkedIn API:</span>
+                            <span class="latency-ms text-cyan" id="latencyLinkedIn">-- ms</span>
+                        </div>
+                    </div>
+                    <div class="payload-inspector-box">
+                        <div class="inspector-tabs" id="inspectorTabs">
+                            <button type="button" class="inspect-tab active" data-inspect="articles">Input Articles JSON</button>
+                            <button type="button" class="inspect-tab" data-inspect="tokens">Token Metrics JSON</button>
+                            <button type="button" class="inspect-tab" data-inspect="draft">Gemini Response</button>
+                        </div>
+                        <pre class="json-code-viewer" id="jsonViewer">{"status": "Waiting for pipeline execution..."}</pre>
+                    </div>
+                </div>
+            </aside>
+        </main>
+
+        <!-- Pipeline Time-Travel Replay Scrubber Bar (DVR / Investigation Audit) -->
+        <div class="pipeline-replay-bar" id="pipelineReplayBar">
+            <div class="replay-status-group">
+                <button type="button" class="btn-replay-play" id="btnReplayPlay" title="Play / Pause Replay Animation">▶</button>
+                <button type="button" class="btn-replay-live active" id="btnReplayLive" title="Kembali ke Mode Real-Time Live">🔴 LIVE</button>
+                <span class="replay-label-badge" id="replayLabelBadge">🔴 REAL-TIME HQ</span>
+                <span class="replay-timestamp" id="replayTimeDisplay">00:00:00</span>
+            </div>
+            <div class="replay-slider-wrap">
+                <input type="range" min="0" max="100" value="100" step="1" class="replay-range-slider" id="replayScrubberSlider" title="Geser mundur untuk Time-Travel Replay pergerakan agen & aliran data">
+                <div class="replay-tick-labels">
+                    <span>⏪ -30m (RSS Radar Scan)</span>
+                    <span>-15m (Gemini AI Drafting)</span>
+                    <span>-5m (Chief Review Gate)</span>
+                    <span>LIVE (Sekarang) ⏩</span>
+                </div>
+            </div>
+            <div class="replay-speed-group">
+                <span class="replay-speed-title">Speed:</span>
+                <button type="button" class="speed-btn active" id="speed1x" onclick="setReplaySpeed(1)">1x</button>
+                <button type="button" class="speed-btn" id="speed2x" onclick="setReplaySpeed(2)">2x</button>
+            </div>
+        </div>
+
+        <!-- Bottom Console / Activity Log Terminal -->
+        <footer class="office-console" id="officeConsole">
+            <div class="console-header">
+                <div class="console-title">
+                    <span class="terminal-dot green"></span>
+                    <span class="terminal-dot yellow"></span>
+                    <span class="terminal-dot red"></span>
+                    <span class="title-text">OFFICE COMMUNICATOR & AGENT SYSTEM LOGS</span>
+                </div>
+                <!-- Log Category Tabs -->
+                <div class="console-tabs" id="consoleTabs">
+                    <button type="button" class="log-tab active" data-tab="all">All Logs</button>
+                    <button type="button" class="log-tab" data-tab="gemini">Gemini API</button>
+                    <button type="button" class="log-tab" data-tab="linkedin">LinkedIn</button>
+                    <button type="button" class="log-tab" data-tab="system">System Errors</button>
+                </div>
+                <div class="console-actions">
+                    <button class="btn-text" id="btnClearLog" title="Bersihkan log riwayat">Clear Log</button>
+                    <button class="btn-icon btn-collapse-toggle" id="btnToggleConsole" title="Collapse / Expand Terminal">
+                        <span id="consoleToggleIcon">▼</span>
+                    </button>
+                </div>
+            </div>
+            <div class="console-body" id="consoleBody">
+                <div class="log-line sys" data-category="system"><span class="timestamp">[SYSTEM]</span> Virtual Office initialized. All 4 AI Agents report ready.</div>
+                <div class="log-line scout" data-category="system"><span class="timestamp">[SCOUT]</span> RSS Feeds targeted: 9 global & local tech sources.</div>
+                <div class="log-line pulse" data-category="gemini"><span class="timestamp">[PULSE]</span> Connected to Gemini 3.8 Flash model endpoint with auto 503 retry protocol.</div>
+                <div class="log-line link" data-category="linkedin"><span class="timestamp">[LINK]</span> LinkedIn REST v2 API ready with protocol version 202401.</div>
+            </div>
+        </footer>
+
+        <!-- Station / Agent Inspection Modal -->
+        <div id="stationModal" class="modal-backdrop hidden">
+            <div class="modal-dialog">
+                <div class="modal-header">
+                    <h2 id="modalTitle"><span class="modal-icon">⚙️</span> Station Details</h2>
+                    <button class="modal-close" onclick="closeStationModal()">✕</button>
+                </div>
+                <div class="modal-body" id="modalBody">
+                    <!-- Dynamic content filled via JS -->
+                </div>
+            </div>
+        </div>
+
+        <!-- Station 4: Chief Editor — Human-in-the-Loop Slide-Over Approval Drawer -->
+        <div id="draftDrawerBackdrop" class="drawer-backdrop hidden" onclick="closeDraftModal()"></div>
+        <aside id="draftDrawer" class="chief-approval-drawer hidden" aria-label="Chief Review Desk — Content Staging">
+            <!-- Header Drawer -->
+            <div class="drawer-header">
+                <div class="drawer-header-left">
+                    <div class="drawer-title-row">
+                        <span class="drawer-badge-icon">👑</span>
+                        <h2 class="drawer-title">Chief Review Desk <span class="drawer-sub">— Content Staging</span></h2>
+                    </div>
+                    <!-- Metadata Chip -->
+                    <div class="drawer-meta-chip">
+                        <span class="chip-item"><span class="chip-dot blue"></span> <span id="drawerSourceChip">Source: Tech Radar #42</span></span>
+                        <span class="chip-sep">•</span>
+                        <span class="chip-item"><span class="chip-dot teal"></span> Target: LinkedIn</span>
+                        <span class="chip-sep">•</span>
+                        <span class="chip-item"><span class="chip-dot purple"></span> Model: <strong id="drawerModelName">gemini-3.8-flash</strong></span>
+                    </div>
+                </div>
+                <!-- Close / Minimize Button -->
+                <button type="button" class="drawer-close-btn" onclick="closeDraftModal()" title="Tutup / Minimize Drawer (✕)">✕</button>
+            </div>
+
+            <!-- Drawer Scrollable Body -->
+            <div class="drawer-body">
+                <!-- 1. Source Summary (Input/Context) -->
+                <div class="drawer-section">
+                    <div class="section-heading">
+                        <span class="sec-icon">📡</span>
+                        <span class="sec-title">SOURCE SUMMARY (INPUT / CONTEXT)</span>
+                        <span class="badge badge-blue" id="drawerSourceCountBadge">1 Sumber</span>
+                    </div>
+                    <div class="source-summary-card" id="sourceSummaryCard">
+                        <div class="source-news-header">
+                            <span class="source-feed-pill" id="sourceFeedPill">News Radar #42</span>
+                            <a href="#" target="_blank" rel="noopener" id="sourceNewsLink" class="source-link-out">🔗 Buka Sumber Asli ↗</a>
+                        </div>
+                        <h4 class="source-news-title" id="sourceNewsTitle">Memuat artikel berita...</h4>
+                        <div class="source-key-facts">
+                            <div class="facts-label">🎯 3 Poin Fakta Utama (Scraped Context):</div>
+                            <ul class="facts-list" id="sourceFactsList">
+                                <li><strong>Inovasi Arsitektur:</strong> Terobosan performa komputasi dan optimasi latensi pada pipeline model generasi terbaru.</li>
+                                <li><strong>Adopsi Industri:</strong> Integrasi skala penuh oleh perusahaan teknologi terdepan untuk efisiensi beban kerja hingga 40%.</li>
+                                <li><strong>Dampak Strategis:</strong> Standar baru implementasi enterprise AI dengan rasio biaya operasional lebih rendah.</li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 2. Generated LinkedIn Post (Editable Preview) -->
+                <div class="drawer-section">
+                    <div class="section-heading">
+                        <span class="sec-icon">✨</span>
+                        <span class="sec-title">GENERATED LINKEDIN POST (PREVIEW)</span>
+                        <div class="preview-mode-pills">
+                            <button type="button" class="btn-preview-pill active" id="btnModeLivePreview" onclick="setDrawerEditMode('preview')">👁️ Live Feed</button>
+                            <button type="button" class="btn-preview-pill" id="btnModeInlineEdit" onclick="setDrawerEditMode('edit')">✏️ Inline Editor</button>
+                        </div>
+                    </div>
+
+                    <!-- LinkedIn Post Mockup & Inline Editor -->
+                    <div class="linkedin-post-mockup">
+                        <div class="mockup-header">
+                            <div class="mockup-avatar">👨‍💼</div>
+                            <div class="mockup-user-info">
+                                <div class="mockup-name">Tech Pulse Leader</div>
+                                <div class="mockup-headline">Chief AI Architect & Thought Leader • Tech Pulse AI HQ</div>
+                                <div class="mockup-post-meta">Baru saja • 🌐 Publik</div>
+                            </div>
+                        </div>
+
+                        <!-- Read Time & Telemetry Pill Bar -->
+                        <div class="mockup-read-bar">
+                            <span class="read-pill" id="postReadTime">⏱️ ~1 min read</span>
+                            <span class="char-pill" id="postCharCount">0 karakter</span>
+                            <span class="tag-pill" id="postTagCount">0 hashtags</span>
+                        </div>
+
+                        <!-- Body: Inline Editor & Formatted Post Text -->
+                        <div class="mockup-body-wrap">
+                            <textarea id="draftTextarea" class="drawer-textarea" rows="9" placeholder="Draf postingan LinkedIn hasil analisis Gemini AI akan muncul di sini..."></textarea>
+                            <div id="mockupPreviewText" class="mockup-rendered-text hidden"></div>
+                        </div>
+
+                        <div class="mockup-footer-reactions">
+                            <span>👍 Suka</span>
+                            <span>💬 Komentar</span>
+                            <span>🔄 Bagikan</span>
+                            <span>✉️ Kirim</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 3. Tone & Token Telemetry -->
+                <div class="drawer-section">
+                    <div class="section-heading">
+                        <span class="sec-icon">📊</span>
+                        <span class="sec-title">TONE & TOKEN TELEMETRY</span>
+                    </div>
+                    <div class="telemetry-bar-grid">
+                        <div class="telemetry-box">
+                            <span class="telemetry-label">Skor Sentimen:</span>
+                            <span class="telemetry-val text-green" id="telemetrySentiment">✨ Professional 96% • 🎯 Engaging 92%</span>
+                        </div>
+                        <div class="telemetry-box">
+                            <span class="telemetry-label">Token Terpakai:</span>
+                            <span class="telemetry-val text-yellow" id="telemetryTokens">🪙 ~541 tokens used</span>
+                        </div>
+                    </div>
+
+                    <!-- Quick Adjust Tone Chips -->
+                    <div class="tone-adjust-wrap">
+                        <span class="tone-adjust-label">⚡ Tombol Cepat "Adjust Tone":</span>
+                        <div class="tone-chips-row">
+                            <button type="button" class="tone-chip" onclick="applyToneAdjustment('formal')">👔 More Formal</button>
+                            <button type="button" class="tone-chip" onclick="applyToneAdjustment('shorter')">✂️ Shorter</button>
+                            <button type="button" class="tone-chip" onclick="applyToneAdjustment('hook')">🎣 Add Hook</button>
+                            <button type="button" class="tone-chip" onclick="applyToneAdjustment('conversational')">💬 Conversational</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Footer Actions (Keputusan Pipeline) -->
+            <div class="drawer-footer">
+                <button type="button" class="btn btn-ghost-danger" id="btnDiscardDraft" onclick="discardPendingDraft()" title="Buang draft ke log arsip tanpa posting">
+                    🗑️ Reject / Discard
+                </button>
+                <div class="footer-primary-actions">
+                    <button type="button" class="btn btn-outline-warning" id="btnRegenerateDraft" onclick="triggerRegenerateDraft()" title="Meminta Gemini membuat alternatif variasi baru">
+                        🔄 Regenerate Draft
+                    </button>
+                    <button type="button" class="btn btn-primary btn-publish-glow" id="btnApprovePublish" onclick="approveAndPublishDraft()" title="Setujui dan siarkan langsung ke LinkedIn">
+                        🚀 Approve & Publish to LinkedIn
+                    </button>
+                </div>
+            </div>
+        </aside>
+
+        <!-- Floating Toast Container -->
+        <div id="officeToastContainer" class="office-toast-container"></div>
+    </div>
+
+    <script src="{{ url_for('static', filename='js/office.js') }}"></script>
+</body>
+</html>

@@ -1,0 +1,244 @@
+- generic [ref=e2]:
+  - banner [ref=e3]:
+    - generic [ref=e6]:
+      - heading "TECH PULSE 2D VIRTUAL OFFICE" [level=1] [ref=e7]:
+        - text: TECH PULSE
+        - generic [ref=e8]: 2D VIRTUAL OFFICE
+      - generic [ref=e9]: Autonomous AI Content Engine & Broadcast HQ
+    - generic [ref=e10]:
+      - generic [ref=e11]:
+        - generic "Active Agents Count" [ref=e12]:
+          - generic [ref=e13]: 🤖
+          - generic [ref=e14]: "AGENTS:"
+          - generic [ref=e15]: 4 Active
+        - generic "Active RSS News Radar Feeds" [ref=e16]:
+          - generic [ref=e17]: 📡
+          - generic [ref=e18]: "RADAR:"
+          - generic [ref=e19]: 9 Feeds
+        - generic "Connected AI Engine Model" [ref=e20]:
+          - generic [ref=e21]: ✨
+          - generic [ref=e22]: "MODEL:"
+          - generic [ref=e23]: gemini-3.8-flash
+        - generic "LinkedIn API Gateway Status" [ref=e24]:
+          - generic [ref=e25]: 💼
+          - generic [ref=e26]: "LINKEDIN:"
+          - generic [ref=e27]: Auth Ready
+      - generic [ref=e28]:
+        - generic [ref=e29]:
+          - button "⚖️ Normal" [ref=e30] [cursor=pointer]
+          - button "🎮 Sim" [ref=e31] [cursor=pointer]
+          - button "📊 Dev" [ref=e32] [cursor=pointer]
+        - 'button "🤖 Auto-Pilot: OFF" [ref=e33] [cursor=pointer]':
+          - generic [ref=e34]: 🤖
+          - generic [ref=e35]: "Auto-Pilot: OFF"
+        - 'button "🔊 Sound: ON" [ref=e36] [cursor=pointer]':
+          - generic [ref=e37]: 🔊
+          - generic [ref=e38]: "Sound: ON"
+        - generic "Pemisah Aksi Penting" [ref=e39]
+        - button "⚡ Run Pipeline" [ref=e40] [cursor=pointer]:
+          - generic [ref=e41]: ⚡
+          - text: Run Pipeline
+  - main [ref=e42]:
+    - generic [ref=e43]:
+      - generic [ref=e44]:
+        - generic [ref=e45]:
+          - generic [ref=e46]: 🏢
+          - text: HQ FLOOR PLAN — LIVE 2D SIMULATION
+        - generic [ref=e47]:
+          - generic "Status Beban Kerja & Pencahayaan Kantor" [ref=e48]: "🌙 Ambient: Standby"
+          - button "🔔 1 Pending Draft" [ref=e49] [cursor=pointer]:
+            - generic [ref=e50]: 🔔
+            - generic [ref=e51]: 1 Pending Draft
+          - generic [ref=e52]: 00:00:00
+          - generic [ref=e53]:
+            - generic [ref=e54]: Scout
+            - generic [ref=e56]: Pulse
+            - generic [ref=e58]: Link
+            - generic [ref=e60]: Boss
+      - generic [ref=e62]:
+        - generic:
+          - generic: 🎯
+          - generic:
+            - strong: Klik lantai
+            - text: untuk jalan •
+            - strong: Klik karakter
+            - text: untuk pilih
+        - generic "Klik untuk membuka Desk Scout (Radar)" [ref=e64] [cursor=pointer]: "Station 1: Radar"
+        - generic "Klik untuk membuka Desk Pulse (Gemini AI)" [ref=e66] [cursor=pointer]: "Station 2: Gemini AI"
+        - generic "Klik untuk membuka Desk Link (LinkedIn)" [ref=e68] [cursor=pointer]: "Station 3: LinkedIn"
+        - generic "Klik untuk membuka Chief Editor Desk" [ref=e70] [cursor=pointer]: "Station 4: Chief Editor"
+    - complementary [ref=e72]:
+      - generic [ref=e73]:
+        - generic [ref=e74]:
+          - heading "👥 ACTIVE AGENTS" [level=3] [ref=e75]:
+            - generic [ref=e76]: 👥
+            - text: ACTIVE AGENTS
+          - generic [ref=e77]: 4 BUTTONS
+        - generic [ref=e78]:
+          - button "📡 Scout Radar Idle ⚙️ Standby" [ref=e79] [cursor=pointer]:
+            - generic [ref=e80]:
+              - generic [ref=e81]: 📡
+              - generic [ref=e82]:
+                - generic [ref=e83]: Scout
+                - generic [ref=e84]: Radar
+              - generic [ref=e85]: Idle
+              - generic "Pengaturan & Detail Stasiun Scout" [ref=e86]: ⚙️
+            - generic [ref=e87]: Standby
+          - button "✨ Pulse Gemini AI Idle ⚙️ Standby" [ref=e89] [cursor=pointer]:
+            - generic [ref=e90]:
+              - generic [ref=e91]: ✨
+              - generic [ref=e92]:
+                - generic [ref=e93]: Pulse
+                - generic [ref=e94]: Gemini AI
+              - generic [ref=e95]: Idle
+              - generic "Pengaturan & Detail Stasiun Pulse" [ref=e96]: ⚙️
+            - generic [ref=e97]: Standby
+          - button "👑 Boss Chief Leader Idle ⚙️ Standby" [ref=e99] [cursor=pointer]:
+            - generic [ref=e100]:
+              - generic [ref=e101]: 👑
+              - generic [ref=e102]:
+                - generic [ref=e103]: Boss
+                - generic [ref=e104]: Chief Leader
+              - generic [ref=e105]: Idle
+              - generic "Pengaturan & Detail Stasiun Boss" [ref=e106]: ⚙️
+            - generic [ref=e107]: Standby
+          - button "💼 Link LinkedIn Idle ⚙️ Standby" [ref=e109] [cursor=pointer]:
+            - generic [ref=e110]:
+              - generic [ref=e111]: 💼
+              - generic [ref=e112]:
+                - generic [ref=e113]: Link
+                - generic [ref=e114]: LinkedIn
+              - generic [ref=e115]: Idle
+              - generic "Pengaturan & Detail Stasiun Link" [ref=e116]: ⚙️
+            - generic [ref=e117]: Standby
+      - generic [ref=e119]:
+        - generic [ref=e120]:
+          - heading "🪙 GEMINI TOKEN MONITOR" [level=3] [ref=e121]:
+            - generic [ref=e122]: 🪙
+            - text: GEMINI TOKEN MONITOR
+          - generic [ref=e123]: gemini-3.8-flash
+        - generic [ref=e124]:
+          - generic [ref=e125]:
+            - generic [ref=e126]: "Sisa Kuota Token (Free Tier / Daily):"
+            - generic [ref=e127]: 1,000,000 / 1,000,000
+          - generic [ref=e130]:
+            - generic [ref=e131]: 100.0% Kuota Tersedia
+            - generic [ref=e132]: Standard 1M Daily Limit
+        - generic [ref=e133]:
+          - generic [ref=e134]:
+            - generic [ref=e135]: "Input / Prompt:"
+            - generic [ref=e136]: 0 tok
+          - generic [ref=e137]:
+            - generic [ref=e138]: "Output / Result:"
+            - generic [ref=e139]: 0 tok
+          - generic [ref=e140]:
+            - generic [ref=e141]: "Permintaan Terakhir:"
+            - generic [ref=e142]: 0 tok
+          - generic [ref=e143]:
+            - generic [ref=e144]: "Total Sesi Ini:"
+            - generic [ref=e145]: 0 tok
+        - generic [ref=e146]:
+          - generic [ref=e147]:
+            - generic [ref=e148]: "💵 Estimasi Biaya Riil (Gemini Flash):"
+            - generic [ref=e149]: $0.00000 (~Rp 0)
+          - generic [ref=e150]:
+            - generic [ref=e151]: "Tarif: $0.075/1M Input • $0.30/1M Output"
+            - generic [ref=e152]: ⚡ Hemat 99.8% vs GPT-4o
+      - generic [ref=e153]:
+        - generic [ref=e154]:
+          - heading "📰 RADAR TECH NEWS" [level=3] [ref=e155]:
+            - generic [ref=e156]: 📰
+            - text: RADAR TECH NEWS
+          - button "🔄" [ref=e157] [cursor=pointer]
+        - generic [ref=e158]: Klik "Run Full Pipeline" atau tombol refresh untuk mengambil berita terkini...
+      - generic [ref=e160]:
+        - generic [ref=e161]:
+          - heading "🔬 API LATENCY & PAYLOAD" [level=3] [ref=e162]:
+            - generic [ref=e163]: 🔬
+            - text: API LATENCY & PAYLOAD
+          - generic [ref=e164]: REST Latency
+        - generic [ref=e165]:
+          - generic [ref=e166]:
+            - generic [ref=e167]: "📡 RSS Radar:"
+            - generic [ref=e168]: "-- ms"
+          - generic [ref=e169]:
+            - generic [ref=e170]: "✨ Gemini AI:"
+            - generic [ref=e171]: "-- ms"
+          - generic [ref=e172]:
+            - generic [ref=e173]: "💼 LinkedIn API:"
+            - generic [ref=e174]: "-- ms"
+        - generic [ref=e175]:
+          - generic [ref=e176]:
+            - button "Input Articles JSON" [ref=e177] [cursor=pointer]
+            - button "Token Metrics JSON" [ref=e178] [cursor=pointer]
+            - button "Gemini Response" [ref=e179] [cursor=pointer]
+          - generic [ref=e180]: "[]"
+  - contentinfo [ref=e181]:
+    - generic [ref=e182]:
+      - generic [ref=e183]: OFFICE COMMUNICATOR & AGENT SYSTEM LOGS
+      - generic [ref=e188]:
+        - button "All Logs" [ref=e189] [cursor=pointer]
+        - button "Gemini API" [ref=e190] [cursor=pointer]
+        - button "LinkedIn" [ref=e191] [cursor=pointer]
+        - button "System Errors" [ref=e192] [cursor=pointer]
+      - generic [ref=e193]:
+        - button "Clear Log" [ref=e194] [cursor=pointer]
+        - button "▼" [ref=e195] [cursor=pointer]
+    - generic [ref=e197]:
+      - generic [ref=e198]: "[SYSTEM] Virtual Office initialized. All 4 AI Agents report ready."
+      - generic [ref=e199]: "[SCOUT] RSS Feeds targeted: 9 global & local tech sources."
+      - generic [ref=e200]: "[PULSE] Connected to Gemini 3.8 Flash model endpoint with auto 503 retry protocol."
+      - generic [ref=e201]: "[LINK] LinkedIn REST v2 API ready with protocol version 202401."
+      - generic [ref=e202]: "[21:59:12] [SYSTEM] Status Office Check: Gemini API (OK), LinkedIn (OK). Sisa Kuota Token: 1,000,000"
+  - generic:
+    - generic:
+      - generic:
+        - heading "⚙️ Station Details" [level=2]:
+          - generic: ⚙️
+          - text: Station Details
+        - button "✕"
+  - generic:
+    - generic:
+      - generic:
+        - generic:
+          - 'heading "👑 Station 4: Chief Editor — Human-in-the-Loop Review" [level=2]':
+            - generic: 👑
+            - text: "Station 4: Chief Editor — Human-in-the-Loop Review"
+          - generic: ⚠️ 1 Pending Draft Membutuhkan Otorisasi
+        - button "✕"
+      - generic:
+        - generic:
+          - generic:
+            - generic: 📡 Sumber Berita Radar Terpilih
+            - generic: 0 Berita
+          - generic: Belum ada artikel sumber. Jalankan pipeline untuk mengumpulkan berita.
+        - generic:
+          - generic:
+            - generic: ✨ Draf Postingan Gemini AI (Dapat Diedit)
+            - generic:
+              - button "📝 Teks Editor"
+              - button "👁️ LinkedIn Feed"
+          - generic:
+            - textbox "Draf postingan hasil analisis Gemini AI akan tampil di sini..."
+            - generic:
+              - generic: 0 Karakter
+              - generic: 0 Hashtag
+              - generic: 🪙 0 Tokens Digunakan
+          - generic:
+            - generic:
+              - generic:
+                - generic: 👨‍💻
+                - generic:
+                  - generic: Tech Pulse Leader
+                  - generic: Chief AI Architect & Thought Leader
+                  - generic: Baru saja • 🌐
+              - generic: Simulasi postingan feed LinkedIn...
+              - generic:
+                - generic: 👍 Suka
+                - generic: 💬 Komentar
+                - generic: 🔄 Bagikan
+                - generic: ✉️ Kirim
+      - generic:
+        - button "Simpan Draf"
+        - button "🔄 Regenerate (Gemini AI)"
+        - button "✅ Approve & Publish to LinkedIn 🚀"
