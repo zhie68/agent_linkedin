@@ -7,18 +7,24 @@
     <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🏢</text></svg>">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Fira+Code:wght@400;500;600&family=Outfit:wght@300;400;600;700;800&family=Press+Start+2P&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Fira+Code:wght@400;500;600&family=Orbitron:wght@500;600;700;800;900&family=Outfit:wght@300;400;600;700;800&family=Press+Start+2P&family=Rajdhani:wght@500;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="{{ url_for('static', filename='css/office.css') }}">
 </head>
 <body>
-    <div id="app" class="office-app">
-        <!-- Top Control Bar (Compact) -->
-        <header class="top-bar">
+    <div id="app" class="office-app sci-fi-bridge">
+        <!-- Top Control Bar (Command Bridge Cockpit) -->
+        <header class="top-bar bridge-header">
             <div class="brand">
-                <div class="status-pulse-dot"></div>
+                <div class="citadel-monogram-wrap">
+                    <div class="citadel-orbit-ring ring-outer"></div>
+                    <div class="citadel-orbit-ring ring-inner"></div>
+                    <div class="citadel-monogram-core">
+                        <span class="core-glyph">⚡</span>
+                    </div>
+                </div>
                 <div class="brand-text">
-                    <h1>TECH PULSE <span class="badge-2d">2D VIRTUAL OFFICE</span></h1>
-                    <span class="sub-text">Autonomous AI Content Engine & Broadcast HQ</span>
+                    <h1 class="citadel-title">TECH PULSE <span class="badge-citadel">COMMAND CITADEL</span></h1>
+                    <span class="sub-text">Autonomous Sci-Fi Intelligence War Room & Broadcast Apex</span>
                 </div>
             </div>
 
@@ -55,6 +61,12 @@
                         <button type="button" class="mode-btn" id="btnModeSimulation" title="Simulasi Imersif (Layar Penuh)">🎮 Sim</button>
                         <button type="button" class="mode-btn" id="btnModeDev" title="Analytics & Developer Tools">📊 Dev</button>
                     </div>
+                    <button id="btnOpenIntercom" class="btn btn-secondary pill btn-sm btn-intercom" title="Buka God Mode Spatial Intercom (Cmd+K)">
+                        <span class="icon">🎙️</span> <span class="text">Intercom</span> <kbd class="cmd-kbd">⌘K</kbd>
+                    </button>
+                    <button id="btnWarRoomToggle" class="btn btn-secondary pill btn-sm btn-warroom" title="Simulasi Insiden / Toggle War Room Alarm">
+                        <span class="icon">🚨</span> <span class="text">War Room</span>
+                    </button>
                     <button id="btnAutoPilot" class="btn btn-secondary pill btn-sm" title="Toggle Auto-Pilot Routine">
                         <span class="icon">🤖</span> <span class="text">Auto-Pilot: OFF</span>
                     </button>
@@ -73,9 +85,9 @@
         <main class="office-main">
             <!-- Left Workspace Canvas Container -->
             <div class="office-viewport-card">
-                <div class="viewport-header">
-                    <div class="view-title">
-                        <span class="pixel-icon">🏢</span> HQ FLOOR PLAN — LIVE 2D SIMULATION
+                <div class="viewport-header bridge-subhead">
+                    <div class="view-title citadel-hud-title">
+                        <span class="pixel-icon">🏛️</span> COMMAND CITADEL MEZZANINE — 2D SPATIAL WAR ROOM
                     </div>
                     <div class="view-controls">
                         <span class="room-ambient-badge standby" id="roomAmbientBadge" title="Status Beban Kerja & Pencahayaan Kantor">🌙 Ambient: Standby</span>
@@ -96,9 +108,48 @@
                     
                     <!-- Overlay Speech Bubbles Container -->
                     <div id="speechBubblesOverlay" class="speech-bubbles-overlay"></div>
+
+                    <!-- War Room Siren Flashing Alarm Overlay -->
+                    <div id="warRoomOverlay" class="war-room-overlay hidden">
+                        <div class="siren-warning-banner">
+                            <span class="siren-icon pulse-alarm">🚨</span>
+                            <div class="siren-text-wrap">
+                                <span class="siren-title">WAR ROOM: INFRASTRUCTURE ANOMALY DETECTED</span>
+                                <span class="siren-desc" id="warRoomDesc">Station 2 (Gemini AI Core): Quota Token Limit / Rate Limit 429. Self-Healing aktif!</span>
+                            </div>
+                            <button type="button" class="btn-siren-resolve" onclick="resolveWarRoomIncident()">Selesaikan Darurat ✅</button>
+                        </div>
+                    </div>
+
+                    <!-- Floating Incident Mitigations Card (1-Click Fallback) -->
+                    <div id="incidentActionCard" class="incident-action-card hidden">
+                        <div class="incident-card-header">
+                            <span class="incident-badge">⚠️ INCIDENT MITIGATION</span>
+                            <button type="button" class="btn-card-close" onclick="closeIncidentCard()">✕</button>
+                        </div>
+                        <div class="incident-target-title" id="incidentTargetTitle">Station 2: Gemini AI Studio</div>
+                        <div class="incident-reason-desc" id="incidentReasonDesc">Token quota exhaustion / API Rate Limit 429 terdeteksi pada model primer.</div>
+                        <div class="incident-btn-group">
+                            <button type="button" class="btn-fallback-action btn-fallback-model" onclick="executeFallbackAction('switch_model')">
+                                <span class="fb-icon">⚡</span> Switch Provider: gemini-2.5-flash (Backup Tier)
+                            </button>
+                            <button type="button" class="btn-fallback-action btn-fallback-oauth" onclick="executeFallbackAction('refresh_oauth')">
+                                <span class="fb-icon">🔄</span> Refresh OAuth Token & Handshake REST v2
+                            </button>
+                            <button type="button" class="btn-fallback-action btn-fallback-scraper" onclick="executeFallbackAction('retry_scraper')">
+                                <span class="fb-icon">🛡️</span> Bypass Cloudflare & Auto-Rotate User-Agent
+                            </button>
+                        </div>
+                    </div>
                     
                     <!-- Floating Camera Navigation & Zoom Toolbar (Top-Right) -->
                     <div class="canvas-camera-toolbar" id="canvasCameraToolbar">
+                        <button type="button" class="cam-btn btn-vault-toggle" id="btnToggleVaultDrawer" title="Matrix RAG Memory Vault (Vector DB Explorer)">💾 Vault</button>
+                        <button type="button" class="cam-btn btn-breaker-toggle" id="btnToggleBreakerModal" title="Budget Circuit-Breaker & Cost Ticker">⚡ Cost</button>
+                        <button type="button" class="cam-btn btn-rpg-toggle" id="btnToggleSkillsModal" title="Agent Evolution & RPG Skill Tree">⭐ RPG</button>
+                        <button type="button" class="cam-btn btn-linkedin-toggle" id="btnToggleLinkedInDrawer" title="Live Production Feed & LinkedIn Analytics">📡 Feed</button>
+                        <button type="button" class="cam-btn btn-neuro-toggle" id="btnToggleNeuro" title="Toggle Neuro-Vision / X-Ray Vector Heatmap (Hotkey: N)">🧠 Neuro</button>
+                        <button type="button" class="cam-btn btn-memo-toggle" id="btnToggleMemos" title="Buka Board Pinned Memos Tim (Multiplayer Memo)">📌 Memo</button>
                         <button type="button" class="cam-btn" id="btnZoomIn" title="Zoom In (+)">➕</button>
                         <button type="button" class="cam-btn" id="btnZoomOut" title="Zoom Out (-)">➖</button>
                         <button type="button" class="cam-btn" id="btnZoomReset" title="Reset Zoom (100%)">🔍 100%</button>
@@ -129,13 +180,13 @@
                     </div>
 
                     <!-- Retro Radar Minimap (Bottom-Left RTS Nav) -->
-                    <div class="radar-minimap-card" id="radarMinimapCard" title="Retro Radar Minimap — Klik untuk mengarahkan kamera">
+                    <div class="radar-minimap-card" id="radarMinimapCard" title="Tactical Green Radar Minimap — Klik untuk mengarahkan kamera">
                         <div class="minimap-header">
                             <span class="radar-blip"></span>
                             <span class="minimap-title">RADAR MINIMAP</span>
                             <span class="minimap-coords" id="minimapCoords">Zoom 1.0x</span>
                         </div>
-                        <canvas id="minimapCanvas" width="168" height="96"></canvas>
+                        <canvas id="minimapCanvas" width="130" height="130"></canvas>
                     </div>
 
                     <!-- Floating Navigation Walk Hint Overlay (Bottom-Left Above Minimap) -->
@@ -539,7 +590,318 @@
 
         <!-- Floating Toast Container -->
         <div id="officeToastContainer" class="office-toast-container"></div>
-    </div>
+
+        <!-- "God Mode" Spatial Intercom Modal (Cmd + K / Ctrl + K) -->
+        <div id="intercomModalBackdrop" class="drawer-backdrop hidden" onclick="closeIntercomModal()"></div>
+        <div id="spatialIntercomModal" class="spatial-intercom-modal hidden">
+            <div class="intercom-header">
+                <div class="intercom-title-row">
+                    <span class="intercom-icon-wave">🎙️</span>
+                    <h3>"GOD MODE" SPATIAL INTERCOM</h3>
+                    <span class="badge badge-purple">NATURAL LANGUAGE HUD</span>
+                </div>
+                <button type="button" class="drawer-close-btn" id="btnCloseIntercom" onclick="closeIntercomModal()" title="Tutup (Esc)">✕</button>
+            </div>
+            <div class="intercom-body">
+                <div class="intercom-input-box">
+                    <input type="text" id="intercomInput" class="intercom-text-input" placeholder="Ketik perintah (contoh: 'Scout, tahan berita kripto, prioritaskan open-source AI' atau 'Pulse, ringkas draf <150 kata')..." autocomplete="off">
+                    <button type="button" class="btn-intercom-mic" id="btnIntercomMic" title="Simulasi Voice Dictation">🎤</button>
+                    <button type="button" class="btn-intercom-send" id="btnIntercomSend">TRANSMIT ⚡</button>
+                </div>
+                <div class="intercom-quick-chips">
+                    <span class="chips-label">🎯 Perintah Cepat:</span>
+                    <button type="button" class="quick-chip" onclick="applyIntercomQuickCmd('Scout, tahan scraping berita kripto, prioritaskan berita open-source AI hari ini.')">📡 Scout: Prioritas AI Open-Source</button>
+                    <button type="button" class="quick-chip" onclick="applyIntercomQuickCmd('Pulse, ringkas draf lebih pendek maksimal 150 kata.')">✨ Pulse: Ringkas Draf ≤150 Kata</button>
+                    <button type="button" class="quick-chip" onclick="applyIntercomQuickCmd('Link, aktifkan mode dry-run publishing.')">💼 Link: Mode Dry-Run</button>
+                    <button type="button" class="quick-chip" onclick="applyIntercomQuickCmd('Boss, panggil seluruh tim istirahat minum kopi ke lounge.')">👑 Boss: Team Coffee Break</button>
+                </div>
+                <div class="intercom-feedback-card hidden" id="intercomFeedbackCard">
+                    <div class="feedback-agent-head">
+                        <span class="radio-ping-icon">📻</span>
+                        <span class="feedback-agent-name" id="intercomFeedbackAgent">Pulse (Gemini AI)</span>
+                        <span class="feedback-status-badge">ACKNOWLEDGED 🫡</span>
+                    </div>
+                    <div class="feedback-message-text" id="intercomFeedbackMsg">"Roger that! Instruksi prompt diperbarui di belakang layar."</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Multiplayer Collaborative Pinned Sticky Memo Modal -->
+        <div id="stickyMemoModalBackdrop" class="drawer-backdrop hidden" onclick="closeStickyMemoModal()"></div>
+        <div id="stickyMemoModal" class="sticky-memo-modal hidden">
+            <div class="memo-modal-header">
+                <div class="memo-title-wrap">
+                    <span class="memo-header-icon">📌</span>
+                    <h3>TEAM COLLABORATIVE MEMO BOARD</h3>
+                    <span class="badge badge-cyan">MULTIPLAYER CO-PRESENCE</span>
+                </div>
+                <button type="button" class="drawer-close-btn" id="btnCloseStickyMemo" onclick="closeStickyMemoModal()" title="Tutup (Esc)">✕</button>
+            </div>
+            <div class="memo-modal-body">
+                <div class="memo-create-card">
+                    <h4>Tinggalkan Sticky Note Baru di Meja Chief Editor:</h4>
+                    <div class="memo-input-row">
+                        <input type="text" id="memoAuthorInput" class="memo-input" placeholder="Nama Anda (misal: Alex / Sarah)" value="Editor Rekan">
+                        <select id="memoColorSelect" class="memo-select">
+                            <option value="#fef08a">🟡 Kuning Catatan</option>
+                            <option value="#bae6fd">🔵 Biru Teknis</option>
+                            <option value="#bbf7d0">🟢 Hijau Selesai</option>
+                            <option value="#fbcfe8">🌸 Pink Prioritas</option>
+                        </select>
+                    </div>
+                    <textarea id="memoTextInput" class="memo-textarea" rows="2" placeholder="Tulis catatan (misal: 'Tolong cek draf jam 10 pagi ☕')..."></textarea>
+                    <button type="button" class="btn btn-primary btn-sm btn-pin-memo" onclick="submitNewStickyMemo()">📌 Tempel Sticky Note di Kanvas</button>
+                </div>
+                <div class="memo-list-section">
+                    <h4>Catatan Terpasang di Kantor Saat Ini:</h4>
+                    <div class="memo-cards-grid" id="memoCardsGrid">
+                        <!-- Loaded dynamically via JS -->
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- 1. Matrix RAG Memory Vault Drawer -->
+        <div id="ragVaultBackdrop" class="drawer-backdrop hidden" onclick="closeRagVaultDrawer()"></div>
+        <aside id="ragVaultDrawer" class="chief-approval-drawer rag-vault-drawer hidden" aria-label="Matrix RAG Memory Vault">
+            <div class="drawer-header">
+                <div class="drawer-title-group">
+                    <span class="drawer-badge badge-purple">VECTOR DATABASE</span>
+                    <h3 class="drawer-title">Matrix RAG Memory Vault</h3>
+                    <div class="drawer-chips">
+                        <span class="chip-dot blue"></span>
+                        <span class="chip-text" id="vaultVectorsCount">14,820 Vectors</span>
+                        <span class="chip-sep">•</span>
+                        <span class="chip-text">768-dim Embeddings</span>
+                        <span class="chip-sep">•</span>
+                        <span class="chip-text">Cosine Similarity</span>
+                    </div>
+                </div>
+                <button type="button" class="drawer-close-btn" id="btnCloseRagVault" onclick="closeRagVaultDrawer()" title="Tutup Drawer (Esc)">✕</button>
+            </div>
+            <div class="drawer-body">
+                <div class="vault-query-section">
+                    <label class="vault-query-label">⚡ Trigger Vector Retrieval Query Beam:</label>
+                    <div class="vault-query-box">
+                        <input type="text" id="ragQueryInput" class="vault-input" placeholder="Ketik topik untuk di-retrieve (contoh: 'Claude 3.7 reasoning benchmarks')...">
+                        <button type="button" class="btn btn-primary btn-sm" id="btnTriggerRetrievalBeam" onclick="triggerRagRetrievalBeam()">Luncurkan Berkas Cahaya 🚀</button>
+                    </div>
+                </div>
+                <div class="vault-stats-banner">
+                    <div class="vs-card">
+                        <span class="vs-label">Collection</span>
+                        <span class="vs-val" id="vaultCollectionName">tech_ai_embeddings_v2</span>
+                    </div>
+                    <div class="vs-card">
+                        <span class="vs-label">Embedding Model</span>
+                        <span class="vs-val">text-embedding-004</span>
+                    </div>
+                    <div class="vs-card">
+                        <span class="vs-label">Status</span>
+                        <span class="vs-val text-green" id="vaultSyncStatus">● SYNCHRONIZED</span>
+                    </div>
+                </div>
+                <div class="vault-chunks-section">
+                    <div class="section-heading">
+                        <span class="sec-icon">📦</span>
+                        <span class="sec-title">RECENTLY RETRIEVED CHUNKS & SIMILARITY SCORES</span>
+                    </div>
+                    <div class="vault-chunks-list" id="vaultChunksList">
+                        <!-- Loaded dynamically via JS -->
+                    </div>
+                </div>
+            </div>
+        </aside>
+
+        <!-- 2. Budget Circuit-Breaker & Financial Hologram Modal -->
+        <div id="budgetBreakerBackdrop" class="drawer-backdrop hidden" onclick="closeBudgetBreakerModal()"></div>
+        <div id="budgetBreakerModal" class="budget-breaker-modal hidden">
+            <div class="breaker-header">
+                <div class="breaker-title-wrap">
+                    <span class="breaker-icon">⚡</span>
+                    <h3>FINANCIAL HOLOGRAM & CIRCUIT-BREAKER</h3>
+                    <span class="badge badge-amber">TOKEN BURN-RATE HUD</span>
+                </div>
+                <button type="button" class="drawer-close-btn" id="btnCloseBreakerModal" onclick="closeBudgetBreakerModal()" title="Tutup (Esc)">✕</button>
+            </div>
+            <div class="breaker-body">
+                <div class="breaker-status-alert" id="breakerStatusAlert">
+                    <div class="bs-indicator bs-normal" id="breakerIndicatorDot"></div>
+                    <div class="bs-text-wrap">
+                        <h4 id="breakerStatusTitle">GRID DAYA KANTOR NORMAL</h4>
+                        <p id="breakerStatusDesc">Sistem daya virtual aktif menyuplai workstation agen.</p>
+                    </div>
+                    <button type="button" class="btn btn-outline-danger btn-sm" id="btnToggleCircuitBreaker" onclick="toggleCircuitBreakerState()">⚡ Uji Putus Daya (Trip)</button>
+                </div>
+                <div class="breaker-metrics-grid">
+                    <div class="bm-card">
+                        <span class="bm-label">Biaya Sesi Saat Ini</span>
+                        <span class="bm-val highlight-amber" id="bmSessionCost">$0.0420</span>
+                        <span class="bm-sub">Model: Gemini 2.5 Flash</span>
+                    </div>
+                    <div class="bm-card">
+                        <span class="bm-label">Kecepatan Konsumsi</span>
+                        <span class="bm-val highlight-cyan" id="bmBurnRate">120 tok/dtk</span>
+                        <span class="bm-sub">Live Prompt Throughput</span>
+                    </div>
+                    <div class="bm-card">
+                        <span class="bm-label">Batas Anggaran Harian</span>
+                        <span class="bm-val highlight-green" id="bmBudgetLimitVal">$5.00</span>
+                        <span class="bm-sub">Threshold Circuit-Breaker</span>
+                    </div>
+                </div>
+                <div class="breaker-slider-section">
+                    <div class="slider-header-row">
+                        <label for="budgetSlider">Atur Ambang Batas Anggaran (Circuit-Breaker Threshold):</label>
+                        <span class="slider-display-val" id="sliderDisplayVal">$5.00 USD</span>
+                    </div>
+                    <input type="range" min="0.05" max="10.00" step="0.05" value="5.00" class="budget-range-slider" id="budgetRangeSlider" oninput="updateBudgetSliderUI(this.value)" onchange="saveBudgetLimit(this.value)">
+                    <div class="slider-markers">
+                        <span>$0.05 (Strict)</span>
+                        <span>$1.00</span>
+                        <span>$5.00 (Default)</span>
+                        <span>$10.00 (Enterprise)</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- 3. Agent Evolution & RPG Skill Leveling Modal -->
+        <div id="agentSkillTreeBackdrop" class="drawer-backdrop hidden" onclick="closeAgentSkillTreeModal()"></div>
+        <div id="agentSkillTreeModal" class="agent-skill-tree-modal hidden">
+            <div class="rpg-header">
+                <div class="rpg-title-wrap">
+                    <span class="rpg-icon">⭐</span>
+                    <h3>AGENT EVOLUTION & RPG SKILL TREE</h3>
+                    <span class="badge badge-purple">AUTONOMOUS AGENT RPG</span>
+                </div>
+                <button type="button" class="drawer-close-btn" id="btnCloseSkillTreeModal" onclick="closeAgentSkillTreeModal()" title="Tutup (Esc)">✕</button>
+            </div>
+            <div class="rpg-body">
+                <div class="rpg-agent-nav-tabs">
+                    <button type="button" class="rpg-tab-btn active" data-agent="scout" onclick="switchRpgAgentTab('scout')">📡 Scout</button>
+                    <button type="button" class="rpg-tab-btn" data-agent="pulse" onclick="switchRpgAgentTab('pulse')">✨ Pulse</button>
+                    <button type="button" class="rpg-tab-btn" data-agent="boss" onclick="switchRpgAgentTab('boss')">👑 Boss</button>
+                    <button type="button" class="rpg-tab-btn" data-agent="link" onclick="switchRpgAgentTab('link')">💼 Link</button>
+                </div>
+                <div class="rpg-profile-card" id="rpgProfileCard">
+                    <div class="rpg-hero-row">
+                        <div class="rpg-avatar-box" id="rpgAvatarBox">📡</div>
+                        <div class="rpg-hero-info">
+                            <div class="rpg-name-badge-row">
+                                <h3 id="rpgAgentName">Scout</h3>
+                                <span class="rpg-class-pill" id="rpgAgentRole">RSS Radar Scraper</span>
+                                <span class="rpg-level-badge" id="rpgAgentLevelBadge">Lv. 4</span>
+                            </div>
+                            <div class="rpg-title-sub" id="rpgAgentTitle">Senior Scraper</div>
+                            <div class="rpg-xp-bar-wrap">
+                                <div class="rpg-xp-bar-fill" id="rpgXpBarFill" style="width: 82%;"></div>
+                                <span class="rpg-xp-bar-text" id="rpgXpBarText">82 / 100 XP (Next Level: Lv. 5)</span>
+                            </div>
+                        </div>
+                        <button type="button" class="btn btn-outline-warning btn-sm" id="btnGainXp" onclick="simulateAgentTaskXp()" title="Simulasikan penyelesaian tugas dan kenaikan level">+25 XP (Level Up)</button>
+                    </div>
+                </div>
+                <div class="rpg-perks-section">
+                    <h4>Skill Tree & Unlocked Perks:</h4>
+                    <div class="rpg-perks-grid" id="rpgPerksGrid">
+                        <!-- Loaded dynamically via JS -->
+                    </div>
+                </div>
+                <div class="rpg-tuner-section">
+                    <h4>Persona & Hyperparameter Tuner:</h4>
+                    <div class="rpg-tuner-row">
+                        <div class="tuner-field">
+                            <label>Creative Temperature: <span id="rpgTempVal">0.3</span></label>
+                            <input type="range" min="0.0" max="1.0" step="0.05" value="0.3" id="rpgTempSlider" oninput="document.getElementById('rpgTempVal').textContent = this.value">
+                        </div>
+                        <div class="tuner-field">
+                            <label>Persona & Style Preset:</label>
+                            <select id="rpgPersonaSelect" class="rpg-select">
+                                <option value="Data-Driven Analyst">📊 Data-Driven Analyst</option>
+                                <option value="Visionary AI Evangelist">🚀 Visionary AI Evangelist</option>
+                                <option value="Authoritative C-Suite Leader">👔 Authoritative C-Suite Leader</option>
+                                <option value="Growth Hacker Marketer">🎯 Growth Hacker Marketer</option>
+                            </select>
+                        </div>
+                        <button type="button" class="btn btn-primary btn-sm btn-save-rpg" onclick="saveAgentRpgConfig()">Simpan Karakter 💾</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- 4. Live Production Feed & LinkedIn Analytics Drawer -->
+        <div id="linkedinAnalyticsBackdrop" class="drawer-backdrop hidden" onclick="closeLinkedInAnalyticsDrawer()"></div>
+        <aside id="linkedinAnalyticsDrawer" class="chief-approval-drawer linkedin-analytics-drawer hidden" aria-label="LinkedIn Performance Analytics">
+            <div class="drawer-header">
+                <div class="drawer-title-group">
+                    <span class="drawer-badge badge-blue">LINKEDIN HUB PRODUCTION</span>
+                    <h3 class="drawer-title">Live Social Proof & Broadcast Analytics</h3>
+                    <div class="drawer-chips">
+                        <span class="chip-dot teal"></span>
+                        <span class="chip-text" id="analyticsLastBroadcast">Published 18m ago</span>
+                        <span class="chip-sep">•</span>
+                        <span class="chip-text">REST API v2</span>
+                    </div>
+                </div>
+                <button type="button" class="drawer-close-btn" id="btnCloseLinkedInDrawer" onclick="closeLinkedInAnalyticsDrawer()" title="Tutup Drawer (Esc)">✕</button>
+            </div>
+            <div class="drawer-body">
+                <div class="analytics-stat-cards-grid">
+                    <div class="asc-card">
+                        <span class="asc-icon">👍</span>
+                        <span class="asc-val" id="ascLikesVal">14</span>
+                        <span class="asc-label">Total Likes</span>
+                    </div>
+                    <div class="asc-card">
+                        <span class="asc-icon">💬</span>
+                        <span class="asc-val" id="ascCommentsVal">3</span>
+                        <span class="asc-label">Comments</span>
+                    </div>
+                    <div class="asc-card">
+                        <span class="asc-icon">🔄</span>
+                        <span class="asc-val" id="ascRepostsVal">2</span>
+                        <span class="asc-label">Reposts</span>
+                    </div>
+                    <div class="asc-card">
+                        <span class="asc-icon">👁️</span>
+                        <span class="asc-val highlight-cyan" id="ascImpressionsVal">342</span>
+                        <span class="asc-label">Impressions</span>
+                    </div>
+                </div>
+                <div class="analytics-secondary-stats">
+                    <div class="ass-item">
+                        <span class="ass-title">Engagement Rate:</span>
+                        <span class="ass-val text-green" id="ascEngagementRate">5.6%</span>
+                    </div>
+                    <div class="ass-item">
+                        <span class="ass-title">Click-Through Rate (CTR):</span>
+                        <span class="ass-val" id="ascCtr">2.4%</span>
+                    </div>
+                    <div class="ass-item">
+                        <span class="ass-title">Viral Score:</span>
+                        <span class="ass-val text-purple" id="ascViralScore">88 / 100</span>
+                    </div>
+                </div>
+                <div class="analytics-chart-section">
+                    <div class="section-heading">
+                        <span class="sec-icon">📈</span>
+                        <span class="sec-title">HOURLY IMPRESSIONS GRAPH (LIVE)</span>
+                    </div>
+                    <div class="analytics-bar-chart" id="analyticsBarChart">
+                        <!-- Loaded dynamically via JS -->
+                    </div>
+                </div>
+                <div class="analytics-post-preview-card">
+                    <div class="app-header">
+                        <span class="app-tag">POSTING TERAKHIR DI-PUBLISH:</span>
+                        <button type="button" class="btn btn-sm btn-outline-primary" onclick="simulateLinkedInViralSpike()">Simulasi Viral Spike (+50 Likes) 🚀</button>
+                    </div>
+                    <h4 class="app-title" id="appPostTitle">Anthropic Claude 3.7 & Autonomous Multi-Agent Workflows in 2026</h4>
+                    <p class="app-desc">Terkoneksi ke akun resmi LinkedIn. Metrik di atas di-update secara real-time dan dipantau oleh pemancar satelit mini Station 3.</p>
+                </div>
+            </div>
+        </aside>
 
     <script src="{{ url_for('static', filename='js/office.js') }}"></script>
 </body>

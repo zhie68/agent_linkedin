@@ -156,6 +156,43 @@ class SoundEffects {
             });
         } catch (e) {}
     }
+
+    playIntercomChirp() {
+        if (!this.enabled) return;
+        this.init();
+        try {
+            const osc = this.ctx.createOscillator();
+            const gain = this.ctx.createGain();
+            osc.type = 'square';
+            osc.frequency.setValueAtTime(800, this.ctx.currentTime);
+            osc.frequency.setValueAtTime(1400, this.ctx.currentTime + 0.04);
+            gain.gain.setValueAtTime(0.04, this.ctx.currentTime);
+            gain.gain.exponentialRampToValueAtTime(0.001, this.ctx.currentTime + 0.12);
+            osc.connect(gain);
+            gain.connect(this.ctx.destination);
+            osc.start();
+            osc.stop(this.ctx.currentTime + 0.12);
+        } catch (e) {}
+    }
+
+    playAlarmSiren() {
+        if (!this.enabled) return;
+        this.init();
+        try {
+            const osc = this.ctx.createOscillator();
+            const gain = this.ctx.createGain();
+            osc.type = 'sawtooth';
+            osc.frequency.setValueAtTime(440, this.ctx.currentTime);
+            osc.frequency.linearRampToValueAtTime(880, this.ctx.currentTime + 0.25);
+            osc.frequency.linearRampToValueAtTime(440, this.ctx.currentTime + 0.5);
+            gain.gain.setValueAtTime(0.05, this.ctx.currentTime);
+            gain.gain.exponentialRampToValueAtTime(0.001, this.ctx.currentTime + 0.5);
+            osc.connect(gain);
+            gain.connect(this.ctx.destination);
+            osc.start();
+            osc.stop(this.ctx.currentTime + 0.5);
+        } catch (e) {}
+    }
 }
 
 const sfx = new SoundEffects();
@@ -345,6 +382,139 @@ class Office2DEngine {
         // 5. Co-Working Dynamics & Lounge Break
         this.idleSeconds = 0;
         this.isLoungeBreakActive = false;
+
+        // 6. War Room & Self-Healing State
+        this.isWarRoomActive = false;
+        this.incidentStation = null;
+        this.incidentReason = null;
+        this.selfHealingState = null; // { agentKey, targetStation, stage: 'walking'|'repairing'|'done', timer: 0 }
+        this.repairParticles = [];
+
+        // 7. Neuro-Vision / X-Ray Vector Heatmap State
+        this.isNeuroVisionActive = false;
+        this.vectorChunkParticles = [
+            { segment: 0, progress: 0.2, label: "dim: 768", type: "vector" },
+            { segment: 1, progress: 0.55, label: "cosine: 0.94", type: "cosine" },
+            { segment: 2, progress: 0.85, label: "chunk: #12", type: "chunk" }
+        ];
+
+        // 8. Multiplayer Co-Presence Visitors & Pinned Memos
+        this.visitors = [
+            {
+                id: 'visitor-alex',
+                name: "Alex",
+                role: "Reviewer",
+                x: 320,
+                y: 190,
+                targetX: 320,
+                targetY: 190,
+                speed: 1.4,
+                facing: "right",
+                isWalking: false,
+                walkCycle: 0,
+                color: "#38bdf8",
+                suitColor: "#0284c7",
+                hairColor: "#cbd5e1",
+                idleTimer: 0
+            },
+            {
+                id: 'visitor-sarah',
+                name: "Sarah",
+                role: "Lead Editor",
+                x: 880,
+                y: 430,
+                targetX: 880,
+                targetY: 430,
+                speed: 1.4,
+                facing: "left",
+                isWalking: false,
+                walkCycle: 0,
+                color: "#f472b6",
+                suitColor: "#db2777",
+                hairColor: "#fde047",
+                idleTimer: 0
+            }
+        ];
+        this.pinnedMemos = [];
+        this.loadPinnedMemos();
+
+        // 9. Matrix RAG Memory Vault & Retrieval Beams
+        this.ragVault = {
+            x: 35,
+            y: 72,
+            width: 88,
+            height: 70,
+            totalVectors: 14820,
+            activeBeams: [] // { progress, speed, label, color }
+        };
+        this.loadRagVaultData();
+
+        // 10. Financial Hologram & Budget Circuit-Breaker
+        this.financial = {
+            session_cost: 0.042,
+            burn_rate: 120,
+            budget_limit: 5.00,
+            is_circuit_breaker_tripped: false,
+            daily_tokens_used: 142050
+        };
+        this.breakerSparks = [];
+        this.loadFinancialMetrics();
+
+        // 11. Agent Evolution & RPG Skill Leveling State
+        this.agentRpg = {
+            scout: { level: 4, xp: 82, next_xp: 100, title: "Senior Scraper", badge_color: "#3b82f6" },
+            pulse: { level: 5, xp: 64, next_xp: 100, title: "Prompt Alchemist", badge_color: "#a855f7" },
+            boss: { level: 6, xp: 91, next_xp: 100, title: "Chief Strategist", badge_color: "#10b981" },
+            link: { level: 3, xp: 45, next_xp: 100, title: "Viral Catalyst", badge_color: "#06b6d4" }
+        };
+        this.rpgFloatingTexts = []; // { text, x, y, alpha, life }
+        this.loadAgentRpgSkills();
+
+        // 12. LinkedIn Broadcast Satellite & Social Proof Simulator
+        this.linkedinBroadcast = {
+            x: 740,
+            y: 135,
+            isBroadcasting: false,
+            radioWaves: [], // { radius, maxRadius, alpha }
+            stats: { likes: 14, comments: 3, reposts: 2, impressions: 342, engagement_rate: 5.6 }
+        };
+        this.loadLinkedInAnalytics();
+
+        // 13. Sci-Fi Command Citadel Visual Simulation State
+        // Flying aerocars in panoramic metropolis skyline
+        this.skyVehicles = [
+            { x: 60, y: 18, speed: 0.65, length: 16, color: "#38bdf8", tail: "#0284c7" },
+            { x: 380, y: 32, speed: -0.45, length: 20, color: "#f59e0b", tail: "#d97706" },
+            { x: 620, y: 12, speed: 0.85, length: 14, color: "#a855f7", tail: "#7c3aed" }
+        ];
+
+        // Volumetric God Rays Dust Motes
+        this.godRayDustMotes = [];
+        for (let i = 0; i < 35; i++) {
+            this.godRayDustMotes.push({
+                x: 100 + Math.random() * 700,
+                y: 50 + Math.random() * 450,
+                speedY: 0.2 + Math.random() * 0.4,
+                speedX: (Math.random() - 0.5) * 0.2,
+                size: 1 + Math.random() * 1.8,
+                alpha: 0.2 + Math.random() * 0.6
+            });
+        }
+
+        // Aerial Curved Data Particle Streams
+        this.aerialStreamParticles = [];
+        for (let i = 0; i < 45; i++) {
+            this.aerialStreamParticles.push({
+                stream: i % 3, // 0: Radar->Globe->Gemini, 1: Gemini->Globe->Boss, 2: Boss->Globe->Link
+                progress: Math.random(),
+                speed: 0.006 + Math.random() * 0.008,
+                size: 1.5 + Math.random() * 2,
+                sparkAlpha: 0.5 + Math.random() * 0.5
+            });
+        }
+
+        // Central Hologram Globe State
+        this.centralGlobeAngle = 0;
 
         // Setup Interaction
         this.setupCanvasInteractions();
@@ -540,6 +710,25 @@ class Office2DEngine {
                 this.selectAgent(clickedAgentKey);
                 sfx.playSelect();
                 showSpeechBubble(clickedAgentKey, `Ready for orders! Siap jalan 🫡`, 2500);
+                openAgentSkillTreeModal(clickedAgentKey);
+                return;
+            }
+
+            // Check if clicked near Matrix RAG Memory Vault (x: 35-135, y: 65-155)
+            if (clickX >= 30 && clickX <= 135 && clickY >= 65 && clickY <= 155) {
+                openRagVaultDrawer();
+                return;
+            }
+
+            // Check if clicked near Floor Financial Hologram (x: 390-510, y: 275-365)
+            if (clickX >= 390 && clickX <= 510 && clickY >= 275 && clickY <= 365) {
+                openBudgetBreakerModal();
+                return;
+            }
+
+            // Check if clicked near Station 3 / LinkedIn Satellite Hub (x: 685-795, y: 115-215)
+            if (clickX >= 685 && clickX <= 795 && clickY >= 115 && clickY <= 215) {
+                openLinkedInAnalyticsDrawer();
                 return;
             }
 
@@ -547,6 +736,13 @@ class Office2DEngine {
             const distToBossDesk = Math.hypot(clickX - 450, clickY - 440);
             if (this.isWaitingApproval && distToBossDesk < 55) {
                 openChiefReviewDrawer();
+                return;
+            }
+
+            // Check if clicked near Kanban Board (x: 300, y: 80) or Chief Desk Memo (x: 450, y: 440)
+            const distToKanban = Math.hypot(clickX - 300, clickY - 80);
+            if (distToKanban < 50 || (!this.isWaitingApproval && distToBossDesk < 42)) {
+                openStickyMemoModal();
                 return;
             }
 
@@ -586,14 +782,33 @@ class Office2DEngine {
             }
         });
 
+        // 5b. Global Hotkeys: Cmd+K / Ctrl+K for Intercom & N for Neuro-Vision
+        window.addEventListener("keydown", (e) => {
+            if ((e.metaKey || e.ctrlKey) && e.key.toLowerCase() === 'k') {
+                e.preventDefault();
+                openSpatialIntercom();
+            } else if (e.key.toLowerCase() === 'n' && !['INPUT', 'TEXTAREA'].includes(document.activeElement.tagName)) {
+                e.preventDefault();
+                toggleNeuroVision();
+            } else if (e.key === 'Escape') {
+                closeIntercomModal();
+                closeStickyMemoModal();
+                closeIncidentCard();
+                closeRagVaultDrawer();
+                closeBudgetBreakerModal();
+                closeAgentSkillTreeModal();
+                closeLinkedInAnalyticsDrawer();
+            }
+        });
+
         // 6. Retro Radar Minimap Click to Pan
         if (this.minimapCanvas) {
             this.minimapCanvas.addEventListener("click", (e) => {
                 const rect = this.minimapCanvas.getBoundingClientRect();
                 const mx = e.clientX - rect.left;
                 const my = e.clientY - rect.top;
-                const targetWorldX = (mx / this.minimapCanvas.width) * this.width;
-                const targetWorldY = (my / this.minimapCanvas.height) * this.height;
+                const targetWorldX = Math.max(0, Math.min(this.width, (mx / this.minimapCanvas.width) * this.width));
+                const targetWorldY = Math.max(0, Math.min(this.height, (my / this.minimapCanvas.height) * this.height));
 
                 this.camera.x = (this.width / 2) - targetWorldX * this.camera.scale;
                 this.camera.y = (this.height / 2) - targetWorldY * this.camera.scale;
@@ -774,6 +989,79 @@ class Office2DEngine {
                 if (p.progress >= 1.0) {
                     p.progress = 0;
                     p.segment = (p.segment + 1) % 3;
+                }
+            });
+        }
+
+        // 8. Update Multiplayer Spectator Visitors (Gentle wandering)
+        if (this.visitors) {
+            this.visitors.forEach(v => {
+                const vdx = v.targetX - v.x;
+                const vdy = v.targetY - v.y;
+                const vdist = Math.hypot(vdx, vdy);
+                if (vdist > 3) {
+                    v.isWalking = true;
+                    v.walkCycle = (v.walkCycle || 0) + 0.18;
+                    v.facing = Math.abs(vdx) > Math.abs(vdy) ? (vdx > 0 ? "right" : "left") : (vdy > 0 ? "down" : "up");
+                    const vstep = Math.min(vdist, v.speed);
+                    v.x += (vdx / vdist) * vstep;
+                    v.y += (vdy / vdist) * vstep;
+                } else {
+                    v.isWalking = false;
+                    v.idleTimer = (v.idleTimer || 0) + 1;
+                    if (v.idleTimer > 350) { // every ~6 seconds
+                        v.idleTimer = 0;
+                        const spots = [
+                            { x: 300, y: 110 },
+                            { x: 450, y: 115 },
+                            { x: 740, y: 115 },
+                            { x: 880, y: 390 },
+                            { x: 530, y: 440 }
+                        ];
+                        const chosen = spots[Math.floor(Math.random() * spots.length)];
+                        v.targetX = chosen.x + (Math.random() * 30 - 15);
+                        v.targetY = chosen.y + (Math.random() * 20 - 10);
+                    }
+                }
+            });
+        }
+
+        // 9. Update Self-Healing Animation State
+        if (this.selfHealingState && this.selfHealingState.stage === 'repairing') {
+            this.selfHealingState.timer++;
+            if (this.frame % 5 === 0) {
+                const targetStation = this.stations[this.selfHealingState.targetStation] || { x: 450, y: 200 };
+                this.repairParticles.push({
+                    x: targetStation.x + (Math.random() * 32 - 16),
+                    y: targetStation.y + (Math.random() * 20 - 10),
+                    vx: Math.random() * 2.4 - 1.2,
+                    vy: -Math.random() * 2.5 - 0.5,
+                    color: Math.random() > 0.5 ? '#f59e0b' : '#38bdf8',
+                    size: 3,
+                    alpha: 1.0,
+                    life: 25
+                });
+            }
+            if (this.selfHealingState.timer >= 280) { // auto-heals after ~4.6 seconds
+                this.finishSelfHealing();
+            }
+        }
+        for (let i = this.repairParticles.length - 1; i >= 0; i--) {
+            const rp = this.repairParticles[i];
+            rp.x += rp.vx;
+            rp.y += rp.vy;
+            rp.alpha -= 0.04;
+            rp.life--;
+            if (rp.life <= 0 || rp.alpha <= 0) this.repairParticles.splice(i, 1);
+        }
+
+        // 10. Update Vector Chunk Flow Particles (Neuro-Vision)
+        if (this.isNeuroVisionActive && this.vectorChunkParticles) {
+            this.vectorChunkParticles.forEach(vp => {
+                vp.progress += 0.007;
+                if (vp.progress >= 1.0) {
+                    vp.progress = 0;
+                    vp.segment = (vp.segment + 1) % 3;
                 }
             });
         }
@@ -972,15 +1260,22 @@ class Office2DEngine {
         // 1. Draw Layered Office Floor Architecture
         this.drawFloorZones();
 
+        // Neuro-Vision: Cybernetic Matrix Circuit Board Floor
+        if (this.isNeuroVisionActive) {
+            this.drawNeuroMatrixFloor();
+        }
+
         // 2. Draw Structural Walls, Windows, Glass Partitions & Columns
         this.drawWallFeatures();
+
+        // Atmospheric Cinematic God Rays piercing from Glass Dome
+        this.drawVolumetricGodRays();
 
         // 3. Draw Furniture & Stations
         this.drawStationFurniture();
 
         // Draw Interactive POI Machines
         this.drawRadarDish(this.stations.scout.x, 140);
-        this.drawHologram(this.stations.pulse.x, 140);
         this.drawServerRack(this.stations.link.x, 140);
         this.drawCoffeeLounge(850, 360);
         this.drawWaterCooler(this.stations.water.x, this.stations.water.y);
@@ -988,10 +1283,43 @@ class Office2DEngine {
         // Draw Extra Builder Stations if spawned (Imagen, Discord, Twitter)
         this.drawCustomBuilderStations();
 
+        // Neuro-Vision: Context Saturation Cathode Gauges & Vector Chunk Flow
+        if (this.isNeuroVisionActive) {
+            this.drawContextSaturationGauge(515, 175, 'pulse');
+            this.drawContextSaturationGauge(225, 175, 'scout');
+            this.drawVectorChunkFlow();
+        }
+
+        // Multiplayer Collaborative Pinned Desk Memos
+        this.drawPinnedDeskMemos();
+
+        // 1. Matrix RAG Memory Vault Room & Retrieval Beams (Top-Left)
+        this.drawMatrixMemoryVault();
+        this.drawRetrievalBeams();
+
+        // 2. Holographic Floor Projection (Token Burn-Rate & Financial Ticker)
+        this.drawHolographicFloorProjection();
+
+        // 3. Central Monolithic 3D Holographic Cyber-Globe / Neural Orb (Center of Main Hall)
+        this.drawHolographicCentralGlobe();
+
+        // 4. Spectacular Arcing Aerial Particle Streams (Curved 3D Data Ribbons Across Hall)
+        this.drawAerialParticleStreams();
+
+        // 5. Mini Broadcast Satellite Dish & Live LinkedIn Ticker (Station 3)
+        this.drawBroadcastSatellite();
+        this.drawLinkedInEngagementTicker();
+
+        // 4. Circuit Breaker Sparks if Tripped
+        if (this.financial && this.financial.is_circuit_breaker_tripped) {
+            this.drawCircuitBreakerSparks();
+        }
+
         // Draw Waypoint Rings & Dust Particles
         this.drawWaypoints();
         this.drawParticles();
         this.drawHandoverParticles();
+        this.drawRepairParticles();
 
         // Draw Active Station Aura Beacon
         if (this.activeMission && this.activeMission.activeStation) {
@@ -1001,15 +1329,25 @@ class Office2DEngine {
         // Draw Data Stream Packets
         this.drawDataPackets();
 
-        // Draw Animated 2D Character Sprites (Sorted by Y for depth layering)
+        // Draw Animated 2D Character Sprites & Multiplayer Spectator Visitors (Sorted by Y for depth layering)
         const agentSource = (this.isReplayMode && this.replaySnapshot) ? this.replaySnapshot.agents : this.agents;
-        const sortedAgents = Object.keys(this.agents)
-            .map(k => ({ key: k, agent: agentSource[k] || this.agents[k] }))
-            .sort((a, b) => a.agent.y - b.agent.y);
-
-        sortedAgents.forEach(({ key, agent }) => {
-            this.drawCharacter(key, agent);
+        const allSprites = [];
+        Object.keys(this.agents).forEach(k => {
+            allSprites.push({ type: 'agent', key: k, entity: agentSource[k] || this.agents[k] });
         });
+        if (this.visitors && !this.isReplayMode) {
+            this.visitors.forEach(v => {
+                allSprites.push({ type: 'visitor', key: v.id, entity: v });
+            });
+        }
+        allSprites.sort((a, b) => a.entity.y - b.entity.y);
+        allSprites.forEach(item => {
+            if (item.type === 'agent') this.drawCharacter(item.key, item.entity);
+            else this.drawVisitorCharacter(item.entity);
+        });
+
+        // 5. Draw RPG Floating Level-Up & XP Texts
+        this.drawRpgFloatingTexts();
 
         // Builder Mode: Connection Ports & Live Dragging Cable
         if (this.isBuilderMode) {
@@ -1035,35 +1373,54 @@ class Office2DEngine {
 
     drawRoomAmbientLighting() {
         this.ctx.save();
-        if (this.roomState === 'standby') {
-            // Ambient Dark Mode (Night / Standby)
-            // Soft dark vignette overlay
-            this.ctx.fillStyle = "rgba(5, 9, 18, 0.42)";
+        if (this.financial && this.financial.is_circuit_breaker_tripped) {
+            // CIRCUIT BREAKER POWER CUT: Harsh emergency flicker & blackout on workstations
+            const flicker = (this.frame % 30 < 5) ? 0.86 : 0.76;
+            this.ctx.fillStyle = `rgba(3, 7, 18, ${flicker})`;
             this.ctx.fillRect(0, 0, this.width, this.height);
 
-            // Warm Cozy Desk Lamps casting soft ambient pools of light on workstations
-            [this.stations.scout, this.stations.pulse, this.stations.link, this.stations.boss, this.stations.coffee].forEach(st => {
-                const lampGrad = this.ctx.createRadialGradient(st.x, st.y, 8, st.x, st.y, 85);
-                lampGrad.addColorStop(0, "rgba(254, 243, 199, 0.16)");
-                lampGrad.addColorStop(0.5, "rgba(254, 215, 170, 0.06)");
-                lampGrad.addColorStop(1, "transparent");
-                this.ctx.fillStyle = lampGrad;
-                this.ctx.beginPath();
-                this.ctx.arc(st.x, st.y, 85, 0, Math.PI * 2);
-                this.ctx.fill();
-            });
-        } else {
-            // Processing: Bright Daylight / Cyber Studio Illumination with Active Desk Spotlights
-            [this.stations.scout, this.stations.pulse, this.stations.link, this.stations.boss].forEach(st => {
-                const spotGrad = this.ctx.createRadialGradient(st.x, st.y, 14, st.x, st.y, 115);
-                spotGrad.addColorStop(0, `${st.color}26`);
-                spotGrad.addColorStop(0.55, `${st.color}0c`);
+            // Circuit-Breaker alert text in lighting layer
+            this.ctx.fillStyle = "#ef4444";
+            this.ctx.font = "bold 11px 'Fira Code'";
+            this.ctx.textAlign = "center";
+            this.ctx.fillText("⚡ POWER GRID CUT: BUDGET CIRCUIT-BREAKER TRIPPED! ⚡", this.width / 2, 45);
+        } else if (this.isWarRoomActive) {
+            // WAR ROOM EMERGENCY: Pulsing Crimson Alarm Siren
+            const sirenPulse = Math.sin(this.frame * 0.18);
+            const redAlpha = 0.38 + sirenPulse * 0.16;
+            this.ctx.fillStyle = `rgba(185, 28, 28, ${redAlpha})`;
+            this.ctx.fillRect(0, 0, this.width, this.height);
+
+            // Flashing Red Alert Spotlight on the troubled station
+            const incidentSt = this.stations[this.incidentStation || 'pulse'];
+            if (incidentSt) {
+                const spotGrad = this.ctx.createRadialGradient(incidentSt.x, incidentSt.y, 8, incidentSt.x, incidentSt.y, 140);
+                spotGrad.addColorStop(0, "rgba(239, 68, 68, 0.75)");
+                spotGrad.addColorStop(0.55, "rgba(239, 68, 68, 0.22)");
                 spotGrad.addColorStop(1, "transparent");
                 this.ctx.fillStyle = spotGrad;
                 this.ctx.beginPath();
-                this.ctx.arc(st.x, st.y, 115, 0, Math.PI * 2);
+                this.ctx.arc(incidentSt.x, incidentSt.y, 140, 0, Math.PI * 2);
                 this.ctx.fill();
-            });
+            }
+        } else if (this.isNeuroVisionActive) {
+            // NEURO-VISION: Subtle emerald matrix ambient
+            this.ctx.fillStyle = "rgba(4, 18, 14, 0.38)";
+            this.ctx.fillRect(0, 0, this.width, this.height);
+        } else if (this.roomState === 'standby') {
+            // Ambient Dark Mode (Night Citadel / Standby)
+            this.ctx.fillStyle = "rgba(4, 7, 16, 0.45)";
+            this.ctx.fillRect(0, 0, this.width, this.height);
+
+            // Overhead Workstation Dramatic Cone Spotlights
+            this.drawWorkstationSpotlights();
+        } else {
+            // Processing: Cyber War Room Overhead Spotlights
+            this.ctx.fillStyle = "rgba(2, 6, 14, 0.22)";
+            this.ctx.fillRect(0, 0, this.width, this.height);
+
+            // Overhead Workstation Dramatic Cone Spotlights
+            this.drawWorkstationSpotlights();
         }
         this.ctx.restore();
     }
@@ -1147,24 +1504,24 @@ class Office2DEngine {
         this.ctx.restore();
     }
 
-    drawPixelTileFloor(startX, startY, w, h) {
+    drawObsidianFloorSSR(startX, startY, w, h) {
         this.ctx.save();
         this.ctx.beginPath();
         this.ctx.rect(startX, startY, w, h);
         this.ctx.clip(); // Constrain within main hall
 
-        const tileSize = 28; // Small retro 2D pixel square tiles
+        const tileSize = 52; // Large architectural polished obsidian marble slabs
         const cols = Math.ceil(w / tileSize);
         const rows = Math.ceil(h / tileSize);
 
-        // Neutral Muted Pixel Palette (Muted Blue-Grey / Slate / Sand-Grey)
-        const tileColorA = "#242f3d"; // Primary muted blue-grey
-        const tileColorB = "#283545"; // Subtle alternating slate
-        const tileColorC = "#263241"; // Worn sand-slate variant
-        const groutColor = "#161f2b"; // 1px dark retro grout seam
-        const highlightColor = "rgba(255, 255, 255, 0.055)"; // 1px pixel edge specular
+        // 1. Base Obsidian Polished Marble Palette
+        const marbleA = "#060914"; // Deep polished obsidian
+        const marbleB = "#090d1c"; // Subtle alternating dark titanium stone
+        const marbleC = "#080b18"; // Dark graphite slab
+        const groutColor = "#020409"; // 1px laser precision grout seam
+        const bevelHighlight = "rgba(56, 189, 248, 0.08)"; // High-gloss specular bevel
 
-        // 1. Draw Flat Matte 2D Pixel Tiles Grid
+        // 1.1 Draw Marble Slabs Grid
         for (let r = 0; r < rows; r++) {
             for (let c = 0; c < cols; c++) {
                 const tx = startX + c * tileSize;
@@ -1172,65 +1529,113 @@ class Office2DEngine {
                 const tw = Math.min(tileSize, startX + w - tx);
                 const th = Math.min(tileSize, startY + h - ty);
 
-                // Checker / subtle stone variation
                 const isEven = (c + r) % 2 === 0;
-                const seed = Math.sin(c * 17.3 + r * 43.7) * 1000;
+                const seed = Math.sin(c * 19.1 + r * 47.3) * 1000;
                 const rand = seed - Math.floor(seed);
 
-                let fill = isEven ? tileColorA : tileColorB;
-                if (rand > 0.82) fill = tileColorC; // subtle worn variation
+                let fill = isEven ? marbleA : marbleB;
+                if (rand > 0.75) fill = marbleC;
 
-                // Tile base
                 this.ctx.fillStyle = fill;
                 this.ctx.fillRect(tx, ty, tw, th);
 
-                // Top & Left 1px Pixel Highlight
-                this.ctx.fillStyle = highlightColor;
+                // Subtle organic marble vein striation on ~15% of slabs
+                if (rand > 0.85 && tw >= 24 && th >= 24) {
+                    this.ctx.strokeStyle = "rgba(148, 163, 184, 0.045)";
+                    this.ctx.lineWidth = 1;
+                    this.ctx.beginPath();
+                    this.ctx.moveTo(tx + 4, ty + th - 6);
+                    this.ctx.lineTo(tx + tw / 2, ty + th / 2);
+                    this.ctx.lineTo(tx + tw - 6, ty + 6);
+                    this.ctx.stroke();
+                }
+
+                // 1px Specular Edge Reflection
+                this.ctx.fillStyle = bevelHighlight;
                 this.ctx.fillRect(tx, ty, tw, 1);
                 this.ctx.fillRect(tx, ty, 1, th);
 
-                // Bottom & Right 1px Dark Grout
+                // 1px Dark Laser Grout
                 this.ctx.fillStyle = groutColor;
                 this.ctx.fillRect(tx, ty + th - 1, tw, 1);
                 this.ctx.fillRect(tx + tw - 1, ty, 1, th);
-
-                // Subtle Worn Texture Specks on ~8% of tiles (Retro Pixel Art Feel)
-                if (rand > 0.92 && tw >= 16 && th >= 16) {
-                    this.ctx.fillStyle = "rgba(15, 22, 33, 0.4)";
-                    this.ctx.fillRect(tx + 6, ty + 8, 2, 2);
-                    this.ctx.fillRect(tx + 18, ty + 16, 2, 2);
-                }
             }
         }
 
-        // 2. Functional Environment Shadows (Bayangan Halus di Bawah Dinding)
-        // North Wall Drop Shadow
-        const northShadow = this.ctx.createLinearGradient(startX, startY, startX, startY + 16);
-        northShadow.addColorStop(0, "rgba(0, 0, 0, 0.55)");
+        // 1.2 High-Gloss Sky Sheen Gradient Wash (Reflection of Citadel Glass Dome)
+        const skySheen = this.ctx.createLinearGradient(startX, startY, startX, startY + h);
+        skySheen.addColorStop(0, "rgba(56, 189, 248, 0.09)");
+        skySheen.addColorStop(0.25, "rgba(99, 102, 241, 0.04)");
+        skySheen.addColorStop(0.6, "transparent");
+        skySheen.addColorStop(1, "rgba(16, 185, 129, 0.03)");
+        this.ctx.fillStyle = skySheen;
+        this.ctx.fillRect(startX, startY, w, h);
+
+        // 1.3 SCREEN-SPACE SPECULAR REFLECTIONS (SSR) OF WORKSTATIONS & ENERGY CORES
+        // Station 1: News Radar Blue SSR Glow Pool
+        const ssrScout = this.ctx.createRadialGradient(160, 245, 10, 160, 260, 65);
+        ssrScout.addColorStop(0, "rgba(59, 130, 246, 0.22)");
+        ssrScout.addColorStop(0.5, "rgba(59, 130, 246, 0.07)");
+        ssrScout.addColorStop(1, "transparent");
+        this.ctx.fillStyle = ssrScout;
+        this.ctx.fillRect(100, 215, 120, 90);
+
+        // Station 2: Gemini Monolith Colossal Vertical Purple SSR Plasma Reflection Pillar
+        const ssrPulseGrad = this.ctx.createLinearGradient(450, 210, 450, 360);
+        ssrPulseGrad.addColorStop(0, "rgba(168, 85, 247, 0.32)");
+        ssrPulseGrad.addColorStop(0.35, "rgba(192, 132, 252, 0.18)");
+        ssrPulseGrad.addColorStop(0.7, "rgba(56, 189, 248, 0.09)");
+        ssrPulseGrad.addColorStop(1, "transparent");
+        this.ctx.fillStyle = ssrPulseGrad;
+        this.ctx.beginPath();
+        this.ctx.ellipse(450, 280, 52, 85, 0, 0, Math.PI * 2);
+        this.ctx.fill();
+
+        // Station 3: LinkedIn Hub Cyan SSR Glow Pool
+        const ssrLink = this.ctx.createRadialGradient(740, 245, 10, 740, 260, 65);
+        ssrLink.addColorStop(0, "rgba(6, 182, 212, 0.24)");
+        ssrLink.addColorStop(0.5, "rgba(6, 182, 212, 0.08)");
+        ssrLink.addColorStop(1, "transparent");
+        this.ctx.fillStyle = ssrLink;
+        this.ctx.fillRect(680, 215, 120, 90);
+
+        // Central Hologram Globe SSR Reflection
+        const ssrGlobe = this.ctx.createRadialGradient(450, 325, 4, 450, 335, 50);
+        ssrGlobe.addColorStop(0, "rgba(56, 189, 248, 0.25)");
+        ssrGlobe.addColorStop(0.4, "rgba(168, 85, 247, 0.12)");
+        ssrGlobe.addColorStop(1, "transparent");
+        this.ctx.fillStyle = ssrGlobe;
+        this.ctx.beginPath();
+        this.ctx.ellipse(450, 330, 48, 22, 0, 0, Math.PI * 2);
+        this.ctx.fill();
+
+        // 1.4 Real-Time Mirrored Agent Feet Reflection on Glossy Mirror Floor
+        const agentSource = (this.isReplayMode && this.replaySnapshot) ? this.replaySnapshot.agents : this.agents;
+        if (agentSource) {
+            Object.keys(agentSource).forEach(k => {
+                const ag = agentSource[k];
+                if (!ag) return;
+                this.ctx.fillStyle = `${ag.color || '#38bdf8'}33`;
+                this.ctx.beginPath();
+                this.ctx.ellipse(ag.x, ag.y + 16, 10, 4, 0, 0, Math.PI * 2);
+                this.ctx.fill();
+            });
+        }
+
+        // 1.5 Perimeter Wall Deep Ambient Occlusion Shadows
+        const northShadow = this.ctx.createLinearGradient(startX, startY, startX, startY + 22);
+        northShadow.addColorStop(0, "rgba(0, 0, 0, 0.85)");
         northShadow.addColorStop(1, "transparent");
         this.ctx.fillStyle = northShadow;
-        this.ctx.fillRect(startX, startY, w, 16);
+        this.ctx.fillRect(startX, startY, w, 22);
 
-        // West Wall Drop Shadow
-        const westShadow = this.ctx.createLinearGradient(startX, startY, startX + 14, startY);
-        westShadow.addColorStop(0, "rgba(0, 0, 0, 0.5)");
+        const westShadow = this.ctx.createLinearGradient(startX, startY, startX + 16, startY);
+        westShadow.addColorStop(0, "rgba(0, 0, 0, 0.75)");
         westShadow.addColorStop(1, "transparent");
         this.ctx.fillStyle = westShadow;
-        this.ctx.fillRect(startX, startY, 14, h);
+        this.ctx.fillRect(startX, startY, 16, h);
 
-        // Wood Partition Wall Shadows (Divisi 1-2 & 2-3)
-        [246, 460].forEach(px => {
-            const partShadow = this.ctx.createLinearGradient(px, startY, px + 10, startY);
-            partShadow.addColorStop(0, "rgba(0, 0, 0, 0.45)");
-            partShadow.addColorStop(1, "transparent");
-            this.ctx.fillStyle = partShadow;
-            this.ctx.fillRect(px, startY, 10, 185);
-        });
-
-        // 3. Functional Small Floor Cables in Tile Grout Seams
-        this.drawGroutCables(startX, startY);
-
-        // 4. Natural Doorway Threshold at Glass Lounge Transition (x: 818 to 825)
+        // Natural Doorway Threshold at Glass Lounge Transition
         this.drawDoorwayThreshold(818, 245, 6, h - (245 - startY));
 
         this.ctx.restore();
@@ -1341,44 +1746,141 @@ class Office2DEngine {
         this.ctx.restore();
     }
 
+    drawChiefElevatedDais() {
+        this.ctx.save();
+        const daisX = 310;
+        const daisY = 385;
+        const daisW = 280;
+        const daisH = 145;
+
+        // 1. Drop Shadow under Mezzanine Dais Platform
+        this.ctx.fillStyle = "rgba(0, 0, 0, 0.8)";
+        this.ctx.beginPath();
+        this.ctx.roundRect(daisX + 4, daisY + 6, daisW, daisH + 16, 12);
+        this.ctx.fill();
+
+        // 2. Base Dark Obsidian Dais Platform Body
+        this.ctx.fillStyle = "#050b14";
+        this.ctx.beginPath();
+        this.ctx.roundRect(daisX, daisY, daisW, daisH, 10);
+        this.ctx.fill();
+
+        // 3. Carbon / Titanium Platform Rim Border with Chamfer
+        this.ctx.strokeStyle = "#1e293b";
+        this.ctx.lineWidth = 2.5;
+        this.ctx.stroke();
+
+        // Outer Neon Glow Trim (Emerald / Cyan Commander Theme)
+        this.ctx.strokeStyle = "rgba(16, 185, 129, 0.45)";
+        this.ctx.lineWidth = 1.2;
+        this.ctx.strokeRect(daisX + 2, daisY + 2, daisW - 4, daisH - 4);
+
+        // 4. Luxury Executive Geometric Inlay Deck (Top Platform Tier)
+        this.ctx.fillStyle = "#03120e";
+        this.ctx.beginPath();
+        this.ctx.roundRect(daisX + 16, daisY + 12, daisW - 32, daisH - 40, 6);
+        this.ctx.fill();
+
+        // Gold Foil Trim on Executive Deck
+        this.ctx.strokeStyle = "#d4af37";
+        this.ctx.lineWidth = 1.2;
+        this.ctx.strokeRect(daisX + 18, daisY + 14, daisW - 36, daisH - 44);
+
+        // Inner Emerald Piping
+        this.ctx.strokeStyle = "rgba(16, 185, 129, 0.3)";
+        this.ctx.lineWidth = 1;
+        this.ctx.strokeRect(daisX + 22, daisY + 18, daisW - 44, daisH - 52);
+
+        // 5. Cascading Dark Marble Steps (Anak Tangga Bercahaya Neon di Bagian Depan)
+        // 3 Tiers of dark steps descending to the main floor
+        const steps = [
+            { y: daisY + daisH - 26, w: daisW - 50, h: 9, neonColor: "#10b981" },
+            { y: daisY + daisH - 15, w: daisW - 30, h: 9, neonColor: "#34d399" },
+            { y: daisY + daisH - 4,  w: daisW - 10, h: 9, neonColor: "#38bdf8" }
+        ];
+
+        steps.forEach((st, idx) => {
+            const sx = daisX + (daisW - st.w) / 2;
+            // Step shadow
+            this.ctx.fillStyle = "rgba(0, 0, 0, 0.6)";
+            this.ctx.fillRect(sx + 2, st.y + 2, st.w, st.h);
+
+            // Step Marble Tread
+            this.ctx.fillStyle = idx === 0 ? "#0a1622" : (idx === 1 ? "#0e1d2c" : "#122538");
+            this.ctx.fillRect(sx, st.y, st.w, st.h);
+
+            // Glowing Neon LED Riser Trim Edge
+            this.ctx.fillStyle = st.neonColor;
+            this.ctx.shadowColor = st.neonColor;
+            this.ctx.shadowBlur = 6;
+            this.ctx.fillRect(sx, st.y + st.h - 1.8, st.w, 1.8);
+            this.ctx.shadowBlur = 0;
+
+            // 1px Step highlight
+            this.ctx.fillStyle = "rgba(255, 255, 255, 0.15)";
+            this.ctx.fillRect(sx, st.y, st.w, 1);
+        });
+
+        // 6. Left & Right Architectural Glass Balustrades (Railing Kaca / Baja)
+        this.ctx.fillStyle = "rgba(56, 189, 248, 0.12)";
+        this.ctx.fillRect(daisX + 6, daisY + 14, 5, daisH - 40);
+        this.ctx.strokeStyle = "#38bdf8";
+        this.ctx.lineWidth = 1;
+        this.ctx.strokeRect(daisX + 6, daisY + 14, 5, daisH - 40);
+
+        this.ctx.fillStyle = "rgba(56, 189, 248, 0.12)";
+        this.ctx.fillRect(daisX + daisW - 11, daisY + 14, 5, daisH - 40);
+        this.ctx.strokeStyle = "#38bdf8";
+        this.ctx.lineWidth = 1;
+        this.ctx.strokeRect(daisX + daisW - 11, daisY + 14, 5, daisH - 40);
+
+        // Brass Handrail Cap on Balustrades
+        this.ctx.fillStyle = "#d4af37";
+        this.ctx.fillRect(daisX + 5, daisY + 12, 7, 3);
+        this.ctx.fillRect(daisX + daisW - 12, daisY + 12, 7, 3);
+
+        // 7. Mezzanine Dais Crest / Title
+        this.ctx.fillStyle = "rgba(16, 185, 129, 0.9)";
+        this.ctx.font = "bold 8px 'Orbitron', monospace";
+        this.ctx.textAlign = "center";
+        this.ctx.fillText("⭐ COMMAND MEZZANINE // CHIEF PODIUM", daisX + daisW / 2, daisY + 26);
+
+        this.ctx.restore();
+    }
+
     drawFloorZones() {
-        // 1. Neutral Retro 2D Pixelated Tiles Flooring (Main Office Hall)
+        // 1. Glossy Obsidian Marble Floor with Screen-Space Reflections (SSR)
         const tileStartX = 20;
         const tileStartY = 58;
         const tileW = 802; // from x: 20 to x: 822 (glass lounge wall)
         const tileH = this.height - tileStartY - 12;
 
-        this.drawPixelTileFloor(tileStartX, tileStartY, tileW, tileH);
+        this.drawObsidianFloorSSR(tileStartX, tileStartY, tileW, tileH);
 
-        // 2. Workstation Zoning Pixelated Carpets (Zonasi Jelas di Bawah Stasiun Kerja)
-        // Station 1: Scout / RSS Radar Carpet (Navy Blue Pixelated Carpet)
+        // 2. Workstation Zoning High-Tech Cyber Mats (Scout, Pulse, Link)
+        // Station 1: Scout / RSS Radar Zone
         this.drawPixelCarpet(95, 135, 130, 145, {
-            baseColor: "#172554",
-            patternColor: "rgba(30, 58, 138, 0.6)",
+            baseColor: "#0f172a",
+            patternColor: "rgba(30, 58, 138, 0.4)",
             borderColor: "#3b82f6"
         });
 
-        // Station 2: Pulse / Gemini AI Carpet (Muted Indigo/Purple Pixelated Carpet)
+        // Station 2: Pulse / Gemini AI Studio Zone
         this.drawPixelCarpet(385, 135, 130, 145, {
-            baseColor: "#2e1065",
-            patternColor: "rgba(59, 7, 100, 0.6)",
+            baseColor: "#130924",
+            patternColor: "rgba(88, 28, 135, 0.35)",
             borderColor: "#a855f7"
         });
 
-        // Station 3: Link / LinkedIn Hub Carpet (Teal Ocean Pixelated Carpet)
+        // Station 3: Link / LinkedIn Hub Zone
         this.drawPixelCarpet(675, 135, 130, 145, {
-            baseColor: "#083344",
-            patternColor: "rgba(22, 78, 99, 0.6)",
+            baseColor: "#061826",
+            patternColor: "rgba(21, 94, 117, 0.35)",
             borderColor: "#06b6d4"
         });
 
-        // Station 4: Boss / Chief Executive Suite Carpet (Emerald Green & Gold Carpet)
-        this.drawPixelCarpet(340, 375, 220, 155, {
-            baseColor: "#064e3b",
-            patternColor: "rgba(4, 120, 87, 0.55)",
-            borderColor: "#10b981",
-            secondBorder: "#d4af37"
-        });
+        // Station 4: Panggung Utama Bertingkat (Elevated Mezzanine Dais for Chief Desk)
+        this.drawChiefElevatedDais();
 
         // 3. High-Tech Floor Cable Conduits with Flowing Dashed Pipeline
         this.drawFloorConduits();
@@ -1940,41 +2442,95 @@ class Office2DEngine {
         const scaleX = mw / this.width;
         const scaleY = mh / this.height;
 
-        // Clear Minimap
-        mctx.fillStyle = "#090e1a";
+        const cx = mw / 2;
+        const cy = mh / 2;
+        const radius = (Math.min(mw, mh) / 2) - 3;
+
+        mctx.clearRect(0, 0, mw, mh);
+
+        // Circular clipping
+        mctx.save();
+        mctx.beginPath();
+        mctx.arc(cx, cy, radius, 0, Math.PI * 2);
+        mctx.clip();
+
+        // Tactical Radar CRT Green Background
+        const bgGrad = mctx.createRadialGradient(cx, cy, 3, cx, cy, radius);
+        bgGrad.addColorStop(0, "#052914");
+        bgGrad.addColorStop(0.65, "#02170b");
+        bgGrad.addColorStop(1, "#010c05");
+        mctx.fillStyle = bgGrad;
         mctx.fillRect(0, 0, mw, mh);
 
-        // Grid pattern
-        mctx.strokeStyle = "rgba(56, 189, 248, 0.1)";
+        // Radar Range Rings (Concentric Circles)
+        [0.32, 0.65, 0.96].forEach((fraction, idx) => {
+            mctx.beginPath();
+            mctx.arc(cx, cy, radius * fraction, 0, Math.PI * 2);
+            mctx.strokeStyle = idx === 1 ? "rgba(16, 185, 129, 0.4)" : "rgba(16, 185, 129, 0.25)";
+            mctx.lineWidth = 1;
+            if (idx === 1) {
+                mctx.setLineDash([3, 3]);
+            } else {
+                mctx.setLineDash([]);
+            }
+            mctx.stroke();
+        });
+        mctx.setLineDash([]);
+
+        // Radar Crosshair Axes with tick marks
+        mctx.strokeStyle = "rgba(16, 185, 129, 0.28)";
         mctx.lineWidth = 1;
-        for (let gx = 0; gx < mw; gx += 28) {
+
+        // Horizontal line
+        mctx.beginPath();
+        mctx.moveTo(cx - radius, cy);
+        mctx.lineTo(cx + radius, cy);
+        mctx.stroke();
+
+        // Vertical line
+        mctx.beginPath();
+        mctx.moveTo(cx, cy - radius);
+        mctx.lineTo(cx, cy + radius);
+        mctx.stroke();
+
+        // Crosshair tick marks
+        [-0.65, -0.32, 0.32, 0.65].forEach(frac => {
+            // Horizontal ticks
+            mctx.beginPath();
+            mctx.moveTo(cx + radius * frac, cy - 2);
+            mctx.lineTo(cx + radius * frac, cy + 2);
+            mctx.stroke();
+            // Vertical ticks
+            mctx.beginPath();
+            mctx.moveTo(cx - 2, cy + radius * frac);
+            mctx.lineTo(cx + 2, cy + radius * frac);
+            mctx.stroke();
+        });
+
+        // Fine tactical grid (green phosphor)
+        mctx.strokeStyle = "rgba(16, 185, 129, 0.08)";
+        mctx.lineWidth = 0.8;
+        for (let gx = cx % 16; gx < mw; gx += 16) {
             mctx.beginPath();
             mctx.moveTo(gx, 0);
             mctx.lineTo(gx, mh);
             mctx.stroke();
         }
-        for (let gy = 0; gy < mh; gy += 24) {
+        for (let gy = cy % 16; gy < mh; gy += 16) {
             mctx.beginPath();
             mctx.moveTo(0, gy);
             mctx.lineTo(mw, gy);
             mctx.stroke();
         }
 
-        // Stations
-        const allStations = { ...this.stations, ...this.customStations };
-        Object.keys(allStations).forEach(k => {
-            const st = allStations[k];
-            mctx.fillStyle = st.color || "#64748b";
-            mctx.fillRect(st.x * scaleX - 3, st.y * scaleY - 3, 6, 6);
-        });
-
-        // Conduits / Cables
+        // Conduits / Cables (Green tactical data links)
         this.customConduits.forEach(c => {
+            const allStations = { ...this.stations, ...this.customStations };
             const s1 = allStations[c.from];
             const s2 = allStations[c.to];
             if (s1 && s2) {
-                mctx.strokeStyle = `${c.color || '#38bdf8'}66`;
-                mctx.lineWidth = 1;
+                mctx.strokeStyle = "rgba(16, 185, 129, 0.65)";
+                mctx.lineWidth = 1.2;
                 mctx.beginPath();
                 mctx.moveTo(s1.x * scaleX, s1.y * scaleY);
                 mctx.lineTo(s2.x * scaleX, s2.y * scaleY);
@@ -1982,37 +2538,1018 @@ class Office2DEngine {
             }
         });
 
-        // Agent Blips
+        // Stations (Tactical green square nodes with halos)
+        const allStations = { ...this.stations, ...this.customStations };
+        Object.keys(allStations).forEach(k => {
+            const st = allStations[k];
+            const sx = st.x * scaleX;
+            const sy = st.y * scaleY;
+            
+            mctx.fillStyle = "#10b981";
+            mctx.fillRect(sx - 2.5, sy - 2.5, 5, 5);
+
+            mctx.strokeStyle = "rgba(52, 211, 153, 0.7)";
+            mctx.lineWidth = 1;
+            mctx.strokeRect(sx - 4, sy - 4, 8, 8);
+        });
+
+        // Agent Blips (Phosphor green pings with radar pulses)
         const agentSource = (this.isReplayMode && this.replaySnapshot) ? this.replaySnapshot.agents : this.agents;
         Object.keys(agentSource).forEach(k => {
             const ag = agentSource[k];
             if (!ag) return;
-            mctx.fillStyle = ag.color || "#ffffff";
+            const ax = ag.x * scaleX;
+            const ay = ag.y * scaleY;
+
+            // Soft pulse ring
+            const pulseSize = 3 + (this.frame % 30) * 0.18;
+            const pulseAlpha = Math.max(0, 0.6 - (this.frame % 30) * 0.02);
+            mctx.strokeStyle = `rgba(52, 211, 153, ${pulseAlpha})`;
+            mctx.lineWidth = 1;
             mctx.beginPath();
-            mctx.arc(ag.x * scaleX, ag.y * scaleY, 2.5, 0, Math.PI * 2);
+            mctx.arc(ax, ay, pulseSize, 0, Math.PI * 2);
+            mctx.stroke();
+
+            // Core Blip
+            mctx.fillStyle = "#34d399";
+            mctx.beginPath();
+            mctx.arc(ax, ay, 2.5, 0, Math.PI * 2);
             mctx.fill();
         });
 
-        // Rotating Radar Sweep Line
-        const sweepAngle = (this.frame * 0.04) % (Math.PI * 2);
+        // Rotating Phosphor Green Radar Sweep Fan & Line
+        const sweepAngle = (this.frame * 0.045) % (Math.PI * 2);
+        
+        // Trailing radar sweep wedge (16 slices decaying in alpha)
+        for (let i = 0; i < 16; i++) {
+            const a1 = sweepAngle - (i + 1) * 0.035;
+            const a2 = sweepAngle - i * 0.035;
+            const alpha = (1 - (i / 16)) * 0.32;
+            mctx.fillStyle = `rgba(16, 185, 129, ${alpha})`;
+            mctx.beginPath();
+            mctx.moveTo(cx, cy);
+            mctx.arc(cx, cy, radius, a1, a2);
+            mctx.closePath();
+            mctx.fill();
+        }
+
+        // Leading Bright Sweep Beam
         mctx.save();
-        mctx.strokeStyle = "rgba(16, 185, 129, 0.4)";
-        mctx.lineWidth = 1.2;
+        mctx.strokeStyle = "#34d399";
+        mctx.lineWidth = 1.8;
+        mctx.shadowColor = "#10b981";
+        mctx.shadowBlur = 8;
         mctx.beginPath();
-        mctx.moveTo(mw / 2, mh / 2);
-        mctx.lineTo(mw / 2 + Math.cos(sweepAngle) * 90, mh / 2 + Math.sin(sweepAngle) * 60);
+        mctx.moveTo(cx, cy);
+        mctx.lineTo(cx + Math.cos(sweepAngle) * radius, cy + Math.sin(sweepAngle) * radius);
         mctx.stroke();
         mctx.restore();
 
-        // Camera Viewport Wireframe
+        // Camera Viewport Wireframe (Neon Phosphor Green Frustum)
         const camWorldX = -this.camera.x / this.camera.scale;
         const camWorldY = -this.camera.y / this.camera.scale;
         const camWorldW = this.width / this.camera.scale;
         const camWorldH = this.height / this.camera.scale;
 
-        mctx.strokeStyle = "#38bdf8";
-        mctx.lineWidth = 1.2;
+        mctx.strokeStyle = "rgba(52, 211, 153, 0.85)";
+        mctx.lineWidth = 1.3;
         mctx.strokeRect(camWorldX * scaleX, camWorldY * scaleY, camWorldW * scaleX, camWorldH * scaleY);
+
+        // Restore Clipping
+        mctx.restore();
+
+        // Outer Bezel & Compass Dial (Drawn on top without clipping)
+        mctx.save();
+        mctx.strokeStyle = "rgba(16, 185, 129, 0.85)";
+        mctx.lineWidth = 2;
+        mctx.beginPath();
+        mctx.arc(cx, cy, radius, 0, Math.PI * 2);
+        mctx.stroke();
+
+        // Compass Ticks & Cardinal Indicators
+        for (let deg = 0; deg < 360; deg += 30) {
+            const rad = (deg * Math.PI) / 180;
+            const isCardinal = deg % 90 === 0;
+            const tickLen = isCardinal ? 5 : 3;
+            const rOuter = radius;
+            const rInner = radius - tickLen;
+
+            mctx.strokeStyle = isCardinal ? "#34d399" : "rgba(16, 185, 129, 0.5)";
+            mctx.lineWidth = isCardinal ? 1.5 : 1;
+            mctx.beginPath();
+            mctx.moveTo(cx + Math.cos(rad) * rOuter, cy + Math.sin(rad) * rOuter);
+            mctx.lineTo(cx + Math.cos(rad) * rInner, cy + Math.sin(rad) * rInner);
+            mctx.stroke();
+        }
+
+        // Cardinal Letters (N, E, S, W)
+        mctx.fillStyle = "#34d399";
+        mctx.font = "bold 8px 'Rajdhani', var(--font-mono)";
+        mctx.textAlign = "center";
+        mctx.textBaseline = "middle";
+        mctx.fillText("N", cx, cy - radius + 9);
+        mctx.fillText("S", cx, cy + radius - 9);
+        mctx.fillText("E", cx + radius - 9, cy);
+        mctx.fillText("W", cx - radius + 9, cy);
+        mctx.restore();
+    }
+
+    // --- NEURO-VISION / X-RAY VECTOR HEATMAP ---
+    toggleNeuroVision() {
+        this.isNeuroVisionActive = !this.isNeuroVisionActive;
+        const btn = document.getElementById("btnToggleNeuro");
+        if (btn) btn.classList.toggle("active", this.isNeuroVisionActive);
+        sfx.playClick();
+        if (this.isNeuroVisionActive) {
+            showToast("Mode Neuro-Vision / X-Ray Vector Aktif 🧠", "info");
+            addLog("NEURO", "Neural Context Flow & Vector Heatmap mode diaktifkan.", "system");
+        } else {
+            showToast("Kembali ke Tampilan Standar", "info");
+        }
+    }
+
+    drawNeuroMatrixFloor() {
+        this.ctx.save();
+        const startX = 20;
+        const startY = 58;
+        const w = 802;
+        const h = this.height - startY - 12;
+
+        this.ctx.beginPath();
+        this.ctx.rect(startX, startY, w, h);
+        this.ctx.clip();
+
+        // 1. Cyber Matrix Circuit Background
+        this.ctx.fillStyle = "rgba(3, 10, 18, 0.88)";
+        this.ctx.fillRect(startX, startY, w, h);
+
+        // 2. High-Tech Green / Cyan PCB Grid Traces
+        const gridSize = 32;
+        this.ctx.strokeStyle = "rgba(16, 185, 129, 0.16)";
+        this.ctx.lineWidth = 1;
+
+        for (let gx = startX; gx < startX + w; gx += gridSize) {
+            this.ctx.beginPath();
+            this.ctx.moveTo(gx, startY);
+            this.ctx.lineTo(gx, startY + h);
+            this.ctx.stroke();
+        }
+        for (let gy = startY; gy < startY + h; gy += gridSize) {
+            this.ctx.beginPath();
+            this.ctx.moveTo(startX, gy);
+            this.ctx.lineTo(startX + w, gy);
+            this.ctx.stroke();
+        }
+
+        // 3. Glowing Bus Circuit Tracks (Conduits between stations)
+        this.ctx.strokeStyle = "rgba(6, 182, 212, 0.4)";
+        this.ctx.lineWidth = 2.5;
+        this.ctx.setLineDash([4, 4]);
+        this.ctx.lineDashOffset = -this.frame * 0.8;
+
+        this.ctx.beginPath();
+        this.ctx.moveTo(160, 200);
+        this.ctx.lineTo(450, 200);
+        this.ctx.lineTo(740, 200);
+        this.ctx.lineTo(740, 440);
+        this.ctx.lineTo(450, 440);
+        this.ctx.stroke();
+        this.ctx.setLineDash([]);
+
+        // 4. Circuit PCB Solder Vias / Glowing Neural Nodes
+        const nodes = [
+            { x: 160, y: 200 }, { x: 300, y: 200 }, { x: 450, y: 200 },
+            { x: 600, y: 200 }, { x: 740, y: 200 }, { x: 450, y: 320 },
+            { x: 450, y: 440 }, { x: 600, y: 440 }, { x: 740, y: 440 },
+            { x: 300, y: 120 }
+        ];
+
+        nodes.forEach((n, idx) => {
+            const pulse = Math.sin(this.frame * 0.15 + idx) * 2;
+            this.ctx.fillStyle = "#10b981";
+            this.ctx.shadowColor = "#10b981";
+            this.ctx.shadowBlur = 8;
+            this.ctx.beginPath();
+            this.ctx.arc(n.x, n.y, 4 + pulse * 0.5, 0, Math.PI * 2);
+            this.ctx.fill();
+
+            this.ctx.strokeStyle = "#38bdf8";
+            this.ctx.lineWidth = 1;
+            this.ctx.beginPath();
+            this.ctx.arc(n.x, n.y, 9 + pulse, 0, Math.PI * 2);
+            this.ctx.stroke();
+            this.ctx.shadowBlur = 0;
+        });
+
+        // 5. Matrix Code Dust Streams
+        this.ctx.fillStyle = "rgba(52, 211, 153, 0.35)";
+        this.ctx.font = "bold 8px 'Fira Code'";
+        for (let i = 0; i < 8; i++) {
+            const rx = startX + ((i * 97 + this.frame) % (w - 40));
+            const ry = startY + ((i * 63 + this.frame * 1.2) % (h - 30));
+            this.ctx.fillText("01101", rx, ry);
+        }
+
+        this.ctx.restore();
+    }
+
+    drawContextSaturationGauge(x, y, stationType = 'pulse') {
+        this.ctx.save();
+        let pct = 0.24;
+        if (latestTokenData && latestTokenData.percentage_used) {
+            pct = Math.min(1.0, latestTokenData.percentage_used / 100);
+        }
+        if (stationType === 'scout') pct = 0.18;
+
+        const w = 18;
+        const h = 76;
+        const fluidH = Math.max(4, h * pct);
+
+        // Mounting Bracket
+        this.ctx.fillStyle = "#1e293b";
+        this.ctx.fillRect(x - 3, y - 6, w + 6, h + 12);
+        this.ctx.strokeStyle = "#475569";
+        this.ctx.lineWidth = 1;
+        this.ctx.strokeRect(x - 3, y - 6, w + 6, h + 12);
+
+        // Cathode Glass Tube Interior
+        this.ctx.fillStyle = "#030712";
+        this.ctx.beginPath();
+        this.ctx.roundRect(x, y, w, h, 8);
+        this.ctx.fill();
+
+        // Glowing Fluid
+        const fluidGrad = this.ctx.createLinearGradient(x, y + h, x, y + h - fluidH);
+        if (pct > 0.85) {
+            fluidGrad.addColorStop(0, "#ef4444");
+            fluidGrad.addColorStop(1, "#f97316");
+        } else {
+            fluidGrad.addColorStop(0, "#06b6d4");
+            fluidGrad.addColorStop(1, "#10b981");
+        }
+        this.ctx.fillStyle = fluidGrad;
+        this.ctx.shadowColor = pct > 0.85 ? "#ef4444" : "#10b981";
+        this.ctx.shadowBlur = 10;
+        this.ctx.beginPath();
+        this.ctx.roundRect(x + 2, y + h - fluidH, w - 4, fluidH - 2, 4);
+        this.ctx.fill();
+        this.ctx.shadowBlur = 0;
+
+        // Bubbles in tube
+        if (this.frame % 10 === 0) {
+            const by = y + h - (Math.random() * fluidH);
+            this.ctx.fillStyle = "#ffffff";
+            this.ctx.beginPath();
+            this.ctx.arc(x + w / 2 + (Math.random() * 4 - 2), by, 1.2, 0, Math.PI * 2);
+            this.ctx.fill();
+        }
+
+        // Glass highlight reflection
+        this.ctx.fillStyle = "rgba(255, 255, 255, 0.25)";
+        this.ctx.fillRect(x + 3, y + 4, 3, h - 8);
+
+        // Digital HUD Text Badge above tube
+        this.ctx.fillStyle = "rgba(11, 15, 25, 0.95)";
+        this.ctx.beginPath();
+        this.ctx.roundRect(x - 42, y - 24, 102, 16, 4);
+        this.ctx.fill();
+        this.ctx.strokeStyle = pct > 0.85 ? "#ef4444" : "#10b981";
+        this.ctx.lineWidth = 1;
+        this.ctx.stroke();
+
+        this.ctx.fillStyle = pct > 0.85 ? "#f87171" : "#34d399";
+        this.ctx.font = "bold 8px 'Fira Code'";
+        this.ctx.textAlign = "center";
+        const pctLabel = Math.round(pct * 100);
+        this.ctx.fillText(`CTX: ${pctLabel}% (128k)`, x + w / 2, y - 13);
+
+        this.ctx.restore();
+    }
+
+    drawVectorChunkFlow() {
+        if (!this.vectorChunkParticles) return;
+        this.vectorChunkParticles.forEach(vp => {
+            let px = 0, py = 0;
+            if (vp.segment === 0) {
+                px = 160 + (450 - 160) * vp.progress;
+                py = 200;
+            } else if (vp.segment === 1) {
+                px = 450;
+                py = 200 + (440 - 200) * vp.progress;
+            } else {
+                px = 450 + (740 - 450) * vp.progress;
+                py = 440 - (440 - 200) * vp.progress;
+            }
+
+            this.ctx.save();
+            const bounce = Math.sin(this.frame * 0.2 + vp.segment) * 2;
+            const w = 58;
+            const h = 16;
+
+            // Particle Badge
+            this.ctx.fillStyle = "rgba(15, 23, 42, 0.95)";
+            this.ctx.beginPath();
+            this.ctx.roundRect(px - w / 2, py - h / 2 + bounce, w, h, 4);
+            this.ctx.fill();
+            this.ctx.strokeStyle = "#06b6d4";
+            this.ctx.lineWidth = 1.2;
+            this.ctx.stroke();
+
+            // Glowing Label
+            this.ctx.fillStyle = "#67e8f9";
+            this.ctx.font = "bold 8px 'Fira Code'";
+            this.ctx.textAlign = "center";
+            this.ctx.fillText(vp.label, px, py + 4 + bounce);
+
+            this.ctx.restore();
+        });
+    }
+
+    // --- MULTIPLAYER CO-PRESENCE: VISITORS & PINNED MEMOS ---
+    drawVisitorCharacter(v) {
+        this.ctx.save();
+        const isWalking = v.isWalking;
+        const walkCycle = v.walkCycle || 0;
+        const bounceY = isWalking ? Math.abs(Math.sin(walkCycle * 2)) * 3.5 : Math.sin(this.frame * 0.04) * 1;
+
+        // Shadow
+        this.ctx.fillStyle = "rgba(0, 0, 0, 0.4)";
+        this.ctx.beginPath();
+        this.ctx.ellipse(v.x, v.y + 16, 14, 5.5, 0, 0, Math.PI * 2);
+        this.ctx.fill();
+
+        // Legs
+        const legOffset = isWalking ? Math.sin(walkCycle) * 5 : 0;
+        this.ctx.fillStyle = "#1e293b";
+        this.ctx.fillRect(v.x - 6, v.y + 3 - bounceY, 4, 11 + legOffset * 0.3);
+        this.ctx.fillRect(v.x + 2, v.y + 3 - bounceY, 4, 11 - legOffset * 0.3);
+
+        // Torso / Casual Hoodie
+        this.ctx.fillStyle = v.suitColor;
+        this.ctx.beginPath();
+        this.ctx.roundRect(v.x - 11, v.y - 12 - bounceY, 22, 16, 4);
+        this.ctx.fill();
+
+        // Head
+        this.ctx.fillStyle = "#fed7aa";
+        this.ctx.beginPath();
+        this.ctx.arc(v.x, v.y - 20 - bounceY, 9, 0, Math.PI * 2);
+        this.ctx.fill();
+
+        // Hair
+        this.ctx.fillStyle = v.hairColor || "#475569";
+        this.ctx.beginPath();
+        this.ctx.arc(v.x, v.y - 23 - bounceY, 8.5, Math.PI, Math.PI * 2);
+        this.ctx.fill();
+
+        // Eyes
+        const eyeX = v.facing === "left" ? -2 : 2;
+        this.ctx.fillStyle = "#0f172a";
+        this.ctx.beginPath();
+        this.ctx.arc(v.x + eyeX, v.y - 20 - bounceY, 1.4, 0, Math.PI * 2);
+        this.ctx.fill();
+
+        // Floating Spectator Lanyard / Name Tag
+        const badgeW = 90;
+        const badgeH = 15;
+        this.ctx.fillStyle = "rgba(11, 15, 25, 0.9)";
+        this.ctx.beginPath();
+        this.ctx.roundRect(v.x - badgeW / 2, v.y - 42 - bounceY, badgeW, badgeH, 4);
+        this.ctx.fill();
+        this.ctx.strokeStyle = v.color;
+        this.ctx.lineWidth = 1;
+        this.ctx.stroke();
+
+        this.ctx.fillStyle = v.color;
+        this.ctx.font = "bold 8px 'Fira Code'";
+        this.ctx.textAlign = "center";
+        this.ctx.fillText(`🟢 ${v.name} (${v.role})`, v.x, v.y - 31 - bounceY);
+
+        this.ctx.restore();
+    }
+
+    drawPinnedDeskMemos() {
+        this.ctx.save();
+        const deskX = 450;
+        const deskY = 440;
+
+        // Memo 1: Yellow Note
+        this.ctx.save();
+        this.ctx.translate(deskX - 32, deskY + 12);
+        this.ctx.rotate(-0.08);
+        this.ctx.fillStyle = "rgba(0, 0, 0, 0.35)";
+        this.ctx.fillRect(2, 2, 22, 20);
+        this.ctx.fillStyle = "#fef08a";
+        this.ctx.fillRect(0, 0, 22, 20);
+        this.ctx.fillStyle = "#854d0e";
+        this.ctx.fillRect(3, 5, 14, 2);
+        this.ctx.fillRect(3, 9, 12, 2);
+        this.ctx.fillRect(3, 13, 8, 2);
+        this.ctx.fillStyle = "#ef4444";
+        this.ctx.beginPath();
+        this.ctx.arc(11, 2, 2.5, 0, Math.PI * 2);
+        this.ctx.fill();
+        this.ctx.restore();
+
+        // Memo 2: Blue Note
+        this.ctx.save();
+        this.ctx.translate(deskX + 16, deskY + 14);
+        this.ctx.rotate(0.06);
+        this.ctx.fillStyle = "rgba(0, 0, 0, 0.35)";
+        this.ctx.fillRect(2, 2, 20, 18);
+        this.ctx.fillStyle = "#bae6fd";
+        this.ctx.fillRect(0, 0, 20, 18);
+        this.ctx.fillStyle = "#0369a1";
+        this.ctx.fillRect(3, 4, 13, 2);
+        this.ctx.fillRect(3, 8, 10, 2);
+        this.ctx.fillStyle = "#10b981";
+        this.ctx.beginPath();
+        this.ctx.arc(10, 2, 2.5, 0, Math.PI * 2);
+        this.ctx.fill();
+        this.ctx.restore();
+
+        // Hover / Action Indicator: [📌 Memo]
+        this.ctx.fillStyle = "rgba(15, 23, 42, 0.9)";
+        this.ctx.beginPath();
+        this.ctx.roundRect(deskX - 26, deskY + 32, 52, 14, 3);
+        this.ctx.fill();
+        this.ctx.strokeStyle = "#f59e0b";
+        this.ctx.lineWidth = 1;
+        this.ctx.stroke();
+
+        this.ctx.fillStyle = "#fde047";
+        this.ctx.font = "bold 7px 'Fira Code'";
+        this.ctx.textAlign = "center";
+        this.ctx.fillText("📌 MEMO", deskX, deskY + 42);
+
+        this.ctx.restore();
+    }
+
+    drawRepairParticles() {
+        this.repairParticles.forEach(p => {
+            this.ctx.save();
+            this.ctx.fillStyle = p.color;
+            this.ctx.shadowColor = p.color;
+            this.ctx.shadowBlur = 8;
+            this.ctx.globalAlpha = Math.max(0, p.alpha);
+            this.ctx.beginPath();
+            this.ctx.arc(p.x, p.y, p.size, 0, Math.PI * 2);
+            this.ctx.fill();
+            this.ctx.restore();
+        });
+    }
+
+    // --- WAR ROOM & SELF-HEALING ENGINE ---
+    triggerWarRoomIncident(stationKey = 'pulse', reason = 'API Rate Limit 429') {
+        this.isWarRoomActive = true;
+        this.incidentStation = stationKey;
+        this.incidentReason = reason;
+
+        sfx.playAlarmSiren();
+
+        const overlay = document.getElementById("warRoomOverlay");
+        if (overlay) overlay.classList.remove("hidden");
+
+        const card = document.getElementById("incidentActionCard");
+        if (card) {
+            card.classList.remove("hidden");
+            const stTitle = document.getElementById("incidentTargetTitle");
+            const stDesc = document.getElementById("incidentReasonDesc");
+            const st = this.stations[stationKey] || { name: stationKey.toUpperCase() };
+            if (stTitle) stTitle.textContent = `${st.name}: Gangguan Layanan!`;
+            if (stDesc) stDesc.textContent = `${reason}. Sistem memulai auto-recovery otonom...`;
+        }
+
+        const techKey = 'boss';
+        const techAgent = this.agents[techKey];
+        if (techAgent) {
+            techAgent.carryingItem = "🧰";
+            const targetSt = this.stations[stationKey] || { x: 450, y: 200 };
+            showSpeechBubble(techKey, `🚨 Insiden terdeteksi di stasiun ${stationKey.toUpperCase()}! Protokol self-healing dijalankan 🧰⚡`, 3500);
+
+            this.walkAgentToCoords(techKey, targetSt.x + 35, targetSt.y + 10).then(() => {
+                this.selfHealingState = {
+                    agentKey: techKey,
+                    targetStation: stationKey,
+                    stage: 'repairing',
+                    timer: 0
+                };
+                showSpeechBubble(techKey, "Menjalankan skrip auto-retry & rotasi gateway... 🔧⚡", 3500);
+            });
+        }
+
+        addLog("WAR_ROOM", `🚨 ALARM DARURAT: Insiden di ${stationKey.toUpperCase()} (${reason}). Self-healing aktif!`, "error");
+    }
+
+    finishSelfHealing() {
+        this.isWarRoomActive = false;
+        const overlay = document.getElementById("warRoomOverlay");
+        if (overlay) overlay.classList.add("hidden");
+        const card = document.getElementById("incidentActionCard");
+        if (card) card.classList.add("hidden");
+
+        const techKey = (this.selfHealingState && this.selfHealingState.agentKey) || 'boss';
+        const techAgent = this.agents[techKey];
+        if (techAgent) {
+            techAgent.carryingItem = null;
+            showSpeechBubble(techKey, "Auto-recovery tuntas! Layanan kembali online & stabil ✅", 3000);
+            this.walkAgentToCoords(techKey, techAgent.homeX, techAgent.homeY);
+        }
+        this.selfHealingState = null;
+        sfx.playSuccessChime();
+        showToast("Self-Healing Berhasil! Gangguan teratasi otomatis.", "success");
+        addLog("WAR_ROOM", "✅ Self-healing berhasil. Layanan telah dipulihkan ke status prima.", "success");
+    }
+
+    loadPinnedMemos() {
+        fetch("/api/memos")
+            .then(res => res.json())
+            .then(data => {
+                if (data.success && data.memos) {
+                    this.pinnedMemos = data.memos;
+                    renderMemoGridUI(this.pinnedMemos);
+                }
+            })
+            .catch(() => {});
+    }
+
+    // ==========================================
+    // 1. MATRIX RAG MEMORY VAULT ENGINE METHODS
+    // ==========================================
+    loadRagVaultData() {
+        fetch("/api/rag/vault")
+            .then(res => res.json())
+            .then(data => {
+                if (data.success && data.vault) {
+                    this.ragVault.totalVectors = data.vault.total_vectors || 14820;
+                    renderVaultChunksUI(data.vault);
+                }
+            })
+            .catch(() => {});
+    }
+
+    fireRagRetrievalBeams(query = "Claude 3.7 reasoning") {
+        const count = 4;
+        for (let i = 0; i < count; i++) {
+            this.ragVault.activeBeams.push({
+                progress: 0,
+                speed: 0.016 + i * 0.003,
+                delay: i * 8,
+                label: i === 0 ? `[cos: 0.942]` : (i === 1 ? `[dim: 768]` : `[chunk: #${i + 1}]`),
+                color: i % 2 === 0 ? '#c084fc' : '#38bdf8'
+            });
+        }
+        sfx.playHandover();
+    }
+
+    drawMatrixMemoryVault() {
+        this.ctx.save();
+        const vx = this.ragVault.x;
+        const vy = this.ragVault.y;
+        const vw = this.ragVault.width;
+        const vh = this.ragVault.height;
+
+        // Vault Glass Room Enclosure
+        this.ctx.fillStyle = "rgba(10, 15, 29, 0.94)";
+        this.ctx.beginPath();
+        this.ctx.roundRect(vx, vy, vw, vh, 6);
+        this.ctx.fill();
+
+        // Neon Border with subtle pulse
+        const borderPulse = Math.sin(this.frame * 0.08) * 0.15;
+        this.ctx.strokeStyle = `rgba(168, 85, 247, ${0.5 + borderPulse})`;
+        this.ctx.lineWidth = 1.6;
+        this.ctx.shadowColor = "#a855f7";
+        this.ctx.shadowBlur = 8;
+        this.ctx.stroke();
+        this.ctx.shadowBlur = 0;
+
+        // Header Label Plate
+        this.ctx.fillStyle = "rgba(15, 23, 42, 0.85)";
+        this.ctx.fillRect(vx + 6, vy + 4, vw - 12, 11);
+        this.ctx.fillStyle = "#c084fc";
+        this.ctx.font = "bold 7px 'Fira Code'";
+        this.ctx.textAlign = "center";
+        this.ctx.fillText("💾 VECTOR VAULT [768-D]", vx + vw / 2, vy + 12.5);
+
+        // Server Rack Column A
+        this.ctx.fillStyle = "#0c1322";
+        this.ctx.fillRect(vx + 6, vy + 18, 22, vh - 24);
+        this.ctx.strokeStyle = "#3b82f640";
+        this.ctx.strokeRect(vx + 6, vy + 18, 22, vh - 24);
+        for (let row = 0; row < 5; row++) {
+            const ledY = vy + 22 + row * 8;
+            this.ctx.fillStyle = (this.frame + row * 15) % 40 < 20 ? "#10b981" : "#06b6d4";
+            this.ctx.fillRect(vx + 9, ledY, 3, 2.5);
+            this.ctx.fillStyle = (this.frame + row * 22) % 60 < 30 ? "#3b82f6" : "#6366f1";
+            this.ctx.fillRect(vx + 14, ledY, 3, 2.5);
+            this.ctx.fillStyle = "#334155";
+            this.ctx.fillRect(vx + 19, ledY, 6, 2.5);
+        }
+
+        // Server Rack Column B
+        this.ctx.fillStyle = "#0c1322";
+        this.ctx.fillRect(vx + 32, vy + 18, 22, vh - 24);
+        this.ctx.strokeStyle = "#a855f740";
+        this.ctx.strokeRect(vx + 32, vy + 18, 22, vh - 24);
+        for (let row = 0; row < 5; row++) {
+            const ledY = vy + 22 + row * 8;
+            this.ctx.fillStyle = (this.frame + row * 18) % 50 < 25 ? "#c084fc" : "#e879f9";
+            this.ctx.fillRect(vx + 35, ledY, 3, 2.5);
+            this.ctx.fillStyle = (this.frame + row * 12) % 45 < 20 ? "#38bdf8" : "#2dd4bf";
+            this.ctx.fillRect(vx + 40, ledY, 3, 2.5);
+            this.ctx.fillStyle = "#334155";
+            this.ctx.fillRect(vx + 45, ledY, 6, 2.5);
+        }
+
+        // Floating 3D Vector Embedding Crystal/Cube at Right Chamber
+        const cubeCx = vx + 68;
+        const cubeCy = vy + 40 + Math.sin(this.frame * 0.08) * 3;
+        const cubeSize = 9;
+
+        this.ctx.save();
+        this.ctx.translate(cubeCx, cubeCy);
+        const rot = this.frame * 0.02;
+        this.ctx.rotate(rot);
+
+        // Outer crystal glow
+        this.ctx.strokeStyle = "#c084fc";
+        this.ctx.lineWidth = 1.2;
+        this.ctx.shadowColor = "#c084fc";
+        this.ctx.shadowBlur = 10;
+        this.ctx.strokeRect(-cubeSize / 2, -cubeSize / 2, cubeSize, cubeSize);
+        this.ctx.fillStyle = "rgba(192, 132, 252, 0.25)";
+        this.ctx.fillRect(-cubeSize / 2, -cubeSize / 2, cubeSize, cubeSize);
+        this.ctx.restore();
+
+        // Orbital Vector Ring
+        this.ctx.strokeStyle = "rgba(56, 189, 248, 0.4)";
+        this.ctx.lineWidth = 1;
+        this.ctx.beginPath();
+        this.ctx.ellipse(cubeCx, cubeCy, 14, 6, this.frame * 0.03, 0, Math.PI * 2);
+        this.ctx.stroke();
+
+        this.ctx.fillStyle = "#38bdf8";
+        this.ctx.font = "bold 6.5px 'Fira Code'";
+        this.ctx.textAlign = "center";
+        this.ctx.fillText("pgvector", cubeCx, vy + 58);
+
+        this.ctx.restore();
+    }
+
+    drawRetrievalBeams() {
+        if (!this.ragVault || !this.ragVault.activeBeams || this.ragVault.activeBeams.length === 0) return;
+
+        const startX = 80;
+        const startY = 108;
+        const targetX = 450;
+        const targetY = 200;
+        const cpX = 260;
+        const cpY = 110; // Control point for curved data beam
+
+        for (let i = this.ragVault.activeBeams.length - 1; i >= 0; i--) {
+            const beam = this.ragVault.activeBeams[i];
+            if (beam.delay && beam.delay > 0) {
+                beam.delay--;
+                continue;
+            }
+
+            beam.progress += beam.speed;
+            const t = Math.min(1.0, beam.progress);
+
+            // Quadratic Bezier interpolation
+            const bx = (1 - t) * (1 - t) * startX + 2 * (1 - t) * t * cpX + t * t * targetX;
+            const by = (1 - t) * (1 - t) * startY + 2 * (1 - t) * t * cpY + t * t * targetY;
+
+            this.ctx.save();
+            this.ctx.fillStyle = beam.color;
+            this.ctx.shadowColor = beam.color;
+            this.ctx.shadowBlur = 12;
+
+            // Glowing plasma particle
+            this.ctx.beginPath();
+            this.ctx.arc(bx, by, 4.5, 0, Math.PI * 2);
+            this.ctx.fill();
+
+            // Floating Label Tag
+            this.ctx.fillStyle = "rgba(15, 23, 42, 0.9)";
+            this.ctx.fillRect(bx - 24, by - 14, 48, 10);
+            this.ctx.strokeStyle = beam.color;
+            this.ctx.lineWidth = 0.8;
+            this.ctx.strokeRect(bx - 24, by - 14, 48, 10);
+
+            this.ctx.fillStyle = "#f1f5f9";
+            this.ctx.font = "bold 6.5px 'Fira Code'";
+            this.ctx.textAlign = "center";
+            this.ctx.fillText(beam.label, bx, by - 6.5);
+            this.ctx.restore();
+
+            // When beam reaches Gemini station
+            if (beam.progress >= 1.0) {
+                this.ragVault.activeBeams.splice(i, 1);
+                // Pulse aura on Gemini workstation
+                this.waypoints.push({
+                    x: targetX,
+                    y: targetY,
+                    radius: 6,
+                    maxRadius: 36,
+                    alpha: 1.0,
+                    color: beam.color
+                });
+            }
+        }
+    }
+
+    // ==========================================
+    // 2. FINANCIAL HOLOGRAM & CIRCUIT-BREAKER
+    // ==========================================
+    loadFinancialMetrics() {
+        fetch("/api/financial/metrics")
+            .then(res => res.json())
+            .then(data => {
+                if (data.success && data.financial) {
+                    this.financial = data.financial;
+                    updateFinancialUI(this.financial);
+                }
+            })
+            .catch(() => {});
+    }
+
+    drawHolographicFloorProjection() {
+        this.ctx.save();
+        const cx = 450;
+        const cy = 320;
+        const rot = this.frame * 0.015;
+
+        const isTripped = this.financial && this.financial.is_circuit_breaker_tripped;
+        const mainColor = isTripped ? "#ef4444" : "#f59e0b";
+        const subColor = isTripped ? "#f87171" : "#38bdf8";
+
+        // Outer Rotating Hologram Ring with tick dashes
+        this.ctx.strokeStyle = `${mainColor}40`;
+        this.ctx.lineWidth = 1.4;
+        this.ctx.setLineDash([8, 6]);
+        this.ctx.lineDashOffset = -rot * 40;
+        this.ctx.beginPath();
+        this.ctx.arc(cx, cy, 54, 0, Math.PI * 2);
+        this.ctx.stroke();
+
+        // Inner Reverse Rotating Hexagon / Ring
+        this.ctx.strokeStyle = `${subColor}50`;
+        this.ctx.lineWidth = 1.2;
+        this.ctx.setLineDash([5, 5]);
+        this.ctx.lineDashOffset = rot * 35;
+        this.ctx.beginPath();
+        this.ctx.arc(cx, cy, 40, 0, Math.PI * 2);
+        this.ctx.stroke();
+        this.ctx.setLineDash([]);
+
+        // Holographic floor grid base
+        this.ctx.fillStyle = isTripped ? "rgba(239, 68, 68, 0.08)" : "rgba(245, 158, 11, 0.06)";
+        this.ctx.beginPath();
+        this.ctx.arc(cx, cy, 54, 0, Math.PI * 2);
+        this.ctx.fill();
+
+        // Hologram Monospace Readout Texts
+        this.ctx.textAlign = "center";
+        if (isTripped) {
+            this.ctx.fillStyle = "#ef4444";
+            this.ctx.font = "bold 8px 'Fira Code'";
+            this.ctx.fillText("⚡ BREAKER TRIPPED! ⚡", cx, cy - 10);
+
+            this.ctx.fillStyle = "#fca5a5";
+            this.ctx.font = "7px 'Fira Code'";
+            this.ctx.fillText("POWER CUT TO DESKS", cx, cy + 3);
+
+            this.ctx.fillStyle = "#e2e8f0";
+            this.ctx.font = "6.5px 'Fira Code'";
+            this.ctx.fillText(`COST: $${(this.financial.session_cost || 0.042).toFixed(3)}`, cx, cy + 14);
+        } else {
+            this.ctx.fillStyle = "#38bdf8";
+            this.ctx.font = "bold 7px 'Fira Code'";
+            this.ctx.fillText("◈ TOKEN BURN-RATE ◈", cx, cy - 12);
+
+            this.ctx.fillStyle = "#fbbf24";
+            this.ctx.font = "bold 9.5px 'Fira Code'";
+            const costText = `$${(this.financial.session_cost || 0.042).toFixed(4)} USD`;
+            this.ctx.fillText(costText, cx, cy);
+
+            this.ctx.fillStyle = "#34d399";
+            this.ctx.font = "7px 'Fira Code'";
+            const burnText = `${this.financial.burn_rate || 120} tok/s • CAP $${(this.financial.budget_limit || 5).toFixed(2)}`;
+            this.ctx.fillText(burnText, cx, cy + 12);
+        }
+
+        this.ctx.restore();
+    }
+
+    drawCircuitBreakerSparks() {
+        if (this.frame % 3 === 0) {
+            this.breakerSparks.push({
+                x: 450 + (Math.random() * 80 - 40),
+                y: 320 + (Math.random() * 40 - 20),
+                vx: Math.random() * 3 - 1.5,
+                vy: -Math.random() * 2.5 - 0.5,
+                size: Math.random() * 2.5 + 1.5,
+                color: Math.random() > 0.5 ? '#ef4444' : '#f59e0b',
+                alpha: 1.0,
+                life: 20
+            });
+        }
+        for (let i = this.breakerSparks.length - 1; i >= 0; i--) {
+            const sp = this.breakerSparks[i];
+            sp.x += sp.vx;
+            sp.y += sp.vy;
+            sp.alpha -= 0.05;
+            sp.life--;
+            if (sp.life <= 0 || sp.alpha <= 0) {
+                this.breakerSparks.splice(i, 1);
+                continue;
+            }
+            this.ctx.save();
+            this.ctx.fillStyle = sp.color;
+            this.ctx.globalAlpha = Math.max(0, sp.alpha);
+            this.ctx.beginPath();
+            this.ctx.arc(sp.x, sp.y, sp.size, 0, Math.PI * 2);
+            this.ctx.fill();
+            this.ctx.restore();
+        }
+    }
+
+    // ==========================================
+    // 3. AGENT EVOLUTION & RPG SKILL LEVELING
+    // ==========================================
+    loadAgentRpgSkills() {
+        fetch("/api/agents/skills")
+            .then(res => res.json())
+            .then(data => {
+                if (data.success && data.agents) {
+                    this.agentRpg = data.agents;
+                }
+            })
+            .catch(() => {});
+    }
+
+    triggerLevelUpAnimation(agentKey) {
+        const agent = this.agents[agentKey] || { x: 450, y: 300 };
+        this.rpgFloatingTexts.push({
+            text: `⭐ LEVEL UP! Lv.${(this.agentRpg[agentKey] && this.agentRpg[agentKey].level) || 2} ⭐`,
+            x: agent.x,
+            y: agent.y - 70,
+            alpha: 1.0,
+            life: 80
+        });
+        sfx.playSuccessChime();
+        showToast(`${agentKey.toUpperCase()} Naik Level! Skill baru terbuka di RPG Tree. ⭐`, "success");
+    }
+
+    drawRpgFloatingTexts() {
+        for (let i = this.rpgFloatingTexts.length - 1; i >= 0; i--) {
+            const ft = this.rpgFloatingTexts[i];
+            ft.y -= 0.5;
+            ft.alpha -= 0.012;
+            ft.life--;
+            if (ft.life <= 0 || ft.alpha <= 0) {
+                this.rpgFloatingTexts.splice(i, 1);
+                continue;
+            }
+            this.ctx.save();
+            this.ctx.globalAlpha = Math.max(0, ft.alpha);
+            this.ctx.fillStyle = "#fbbf24";
+            this.ctx.shadowColor = "#f59e0b";
+            this.ctx.shadowBlur = 10;
+            this.ctx.font = "bold 9.5px 'Press Start 2P', monospace";
+            this.ctx.textAlign = "center";
+            this.ctx.fillText(ft.text, ft.x, ft.y);
+            this.ctx.restore();
+        }
+    }
+
+    // ==========================================
+    // 4. LIVE PRODUCTION FEED & LINKEDIN SATELLITE
+    // ==========================================
+    loadLinkedInAnalytics() {
+        fetch("/api/analytics/linkedin")
+            .then(res => res.json())
+            .then(data => {
+                if (data.success && data.analytics) {
+                    this.linkedinBroadcast.stats = data.analytics;
+                    renderLinkedInAnalyticsUI(data.analytics);
+                }
+            })
+            .catch(() => {});
+    }
+
+    drawBroadcastSatellite() {
+        this.ctx.save();
+        const sx = this.linkedinBroadcast.x;
+        const sy = this.linkedinBroadcast.y;
+
+        // Tripod mast stand
+        this.ctx.strokeStyle = "#475569";
+        this.ctx.lineWidth = 1.8;
+        this.ctx.beginPath();
+        this.ctx.moveTo(sx - 9, sy + 18);
+        this.ctx.lineTo(sx, sy + 6);
+        this.ctx.lineTo(sx + 9, sy + 18);
+        this.ctx.stroke();
+
+        // Central vertical shaft
+        this.ctx.beginPath();
+        this.ctx.moveTo(sx, sy + 6);
+        this.ctx.lineTo(sx, sy - 4);
+        this.ctx.stroke();
+
+        // Parabolic Dish (angled upward)
+        this.ctx.fillStyle = "#1e293b";
+        this.ctx.strokeStyle = "#06b6d4";
+        this.ctx.lineWidth = 1.4;
+        this.ctx.beginPath();
+        this.ctx.ellipse(sx, sy - 6, 12, 6, -0.2, 0, Math.PI * 2);
+        this.ctx.fill();
+        this.ctx.stroke();
+
+        // Focal feed horn
+        this.ctx.strokeStyle = "#cbd5e1";
+        this.ctx.lineWidth = 1.2;
+        this.ctx.beginPath();
+        this.ctx.moveTo(sx, sy - 6);
+        this.ctx.lineTo(sx + 3, sy - 14);
+        this.ctx.stroke();
+
+        // Blinking transmission beacon LED
+        const beaconBlink = (this.frame % 30 < 15);
+        this.ctx.fillStyle = beaconBlink ? "#22d3ee" : "#0284c7";
+        this.ctx.shadowColor = "#06b6d4";
+        this.ctx.shadowBlur = 8;
+        this.ctx.beginPath();
+        this.ctx.arc(sx + 3, sy - 14, 2.5, 0, Math.PI * 2);
+        this.ctx.fill();
+        this.ctx.shadowBlur = 0;
+
+        // Radiating Radio Waves (when broadcasting or periodic pulse)
+        if (this.frame % 90 === 0) {
+            this.linkedinBroadcast.radioWaves.push({
+                radius: 6,
+                maxRadius: 36,
+                alpha: 0.8
+            });
+        }
+        for (let i = this.linkedinBroadcast.radioWaves.length - 1; i >= 0; i--) {
+            const wave = this.linkedinBroadcast.radioWaves[i];
+            wave.radius += 0.8;
+            wave.alpha -= 0.018;
+            if (wave.radius >= wave.maxRadius || wave.alpha <= 0) {
+                this.linkedinBroadcast.radioWaves.splice(i, 1);
+                continue;
+            }
+            this.ctx.strokeStyle = "#06b6d4";
+            this.ctx.globalAlpha = Math.max(0, wave.alpha);
+            this.ctx.lineWidth = 1.4;
+            this.ctx.beginPath();
+            this.ctx.arc(sx + 3, sy - 14, wave.radius, -Math.PI * 0.9, -Math.PI * 0.1);
+            this.ctx.stroke();
+        }
+
+        this.ctx.restore();
+    }
+
+    drawLinkedInEngagementTicker() {
+        this.ctx.save();
+        const tx = this.linkedinBroadcast.x;
+        const ty = 172;
+        const stats = this.linkedinBroadcast.stats || { likes: 14, comments: 3, reposts: 2, impressions: 342 };
+
+        const pillW = 168;
+        const pillH = 17;
+        const pillX = tx - pillW / 2;
+        const pillY = ty - pillH / 2;
+
+        // Floating Pill Badge
+        this.ctx.fillStyle = "rgba(10, 15, 29, 0.92)";
+        this.ctx.beginPath();
+        this.ctx.roundRect(pillX, pillY, pillW, pillH, 5);
+        this.ctx.fill();
+
+        this.ctx.strokeStyle = "rgba(6, 182, 212, 0.55)";
+        this.ctx.lineWidth = 1;
+        this.ctx.stroke();
+
+        // Pulsing Live Dot
+        const dotPulse = (this.frame % 40 < 20);
+        this.ctx.fillStyle = dotPulse ? "#10b981" : "#059669";
+        this.ctx.beginPath();
+        this.ctx.arc(pillX + 8, ty, 2.5, 0, Math.PI * 2);
+        this.ctx.fill();
+
+        // Ticker Text: Likes, Comments, Reposts, Impressions
+        this.ctx.fillStyle = "#f1f5f9";
+        this.ctx.font = "bold 7.5px 'Fira Code'";
+        this.ctx.textAlign = "left";
+        const tickerStr = `👍 ${stats.likes} 💬 ${stats.comments} 🔄 ${stats.reposts} 👁️ ${stats.impressions}`;
+        this.ctx.fillText(tickerStr, pillX + 16, ty + 2.5);
+
+        this.ctx.restore();
     }
 
     drawRaisedServerFloor(x, y, w, h, color) {
@@ -2240,15 +3777,8 @@ class Office2DEngine {
             ledGlow: false
         });
 
-        // 3. PANORAMIC CITY SKYLINE WINDOW (Framed with Teak Wood Moldings)
-        this.drawCitySkylineWindow(468, 8, 224, 44);
-        // Wood Wainscot trim below window
-        this.drawWoodWallPanel(468, 52, 224, 10, {
-            woodType: 'teak',
-            slatSize: 8,
-            orientation: 'horizontal',
-            ledGlow: false
-        });
+        // 3. COLOSSAL CITADEL PANORAMIC GLASS DOME SKYLINE (Penthouse War Room View)
+        this.drawCitadelPanoramicSkyline(20, 0, 802, 60);
 
         // 4. DIVISI 3 (LINK / LINKEDIN HUB) — Golden Teak Timber Slats Wall
         this.drawWoodWallPanel(692, 0, 130, wallH, {
@@ -2360,94 +3890,512 @@ class Office2DEngine {
         this.drawOfficePlant(800, 530);
     }
 
-    drawCitySkylineWindow(x, y, w, h) {
+    drawCitadelPanoramicSkyline(x, y, w, h) {
         this.ctx.save();
-        // Window Frame
-        this.ctx.fillStyle = "#020617";
+        this.ctx.beginPath();
+        this.ctx.rect(x, y, w, h);
+        this.ctx.clip();
+
+        // 1. Cosmic Deep Void to Indigo/Cyan Nebula Haze Gradient
+        const skyGrad = this.ctx.createLinearGradient(x, y, x, y + h);
+        skyGrad.addColorStop(0, "#010309");
+        skyGrad.addColorStop(0.35, "#060b1e");
+        skyGrad.addColorStop(0.75, "#0d1b3a");
+        skyGrad.addColorStop(1, "#1e1b4b");
+        this.ctx.fillStyle = skyGrad;
         this.ctx.fillRect(x, y, w, h);
 
-        // Night Sky Gradient
-        const skyGrad = this.ctx.createLinearGradient(x, y, x, y + h);
-        skyGrad.addColorStop(0, "#030712");
-        skyGrad.addColorStop(0.7, "#0f172a");
-        skyGrad.addColorStop(1, "#1e293b");
-        this.ctx.fillStyle = skyGrad;
-        this.ctx.fillRect(x + 2, y + 2, w - 4, h - 4);
-
-        // Starry night twinkling stars
+        // 2. Cosmic Twinkling Stars
         this.ctx.fillStyle = "#ffffff";
-        const stars = [
-            { ox: 15, oy: 8 }, { ox: 45, oy: 14 }, { ox: 85, oy: 6 },
-            { ox: 130, oy: 10 }, { ox: 175, oy: 5 }, { ox: 210, oy: 12 }
-        ];
-        stars.forEach(st => {
-            const twinkle = (this.frame + st.ox * 5) % 40 < 20 ? 1 : 0.4;
+        for (let i = 0; i < 48; i++) {
+            const sx = x + (i * 29.3 + 7) % w;
+            const sy = y + (i * 13.7 + 3) % (h - 12);
+            const twinkle = (this.frame + i * 17) % 60 < 30 ? 0.9 : 0.25;
             this.ctx.globalAlpha = twinkle;
-            this.ctx.fillRect(x + st.ox, y + st.oy, 1.5, 1.5);
-        });
+            this.ctx.fillRect(sx, sy, 1.2, 1.2);
+        }
         this.ctx.globalAlpha = 1;
 
-        // Distant Cyber City Skyline Building Silhouettes
-        const buildings = [
-            { bx: 8, bw: 26, bh: 26 },
-            { bx: 38, bw: 32, bh: 32 },
-            { bx: 74, bw: 22, bh: 22 },
-            { bx: 100, bw: 36, bh: 36 },
-            { bx: 140, bw: 28, bh: 24 },
-            { bx: 172, bw: 30, bh: 30 },
-            { bx: 206, bw: 20, bh: 20 }
+        // 3. Colossal Parallax Cyberpunk Metropolis Skyscrapers
+        const buildingsFar = [
+            { bx: 15, bw: 38, bh: 48 }, { bx: 68, bw: 45, bh: 54 }, { bx: 130, bw: 32, bh: 42 },
+            { bx: 178, bw: 52, bh: 58 }, { bx: 245, bw: 40, bh: 46 }, { bx: 300, bw: 60, bh: 56 },
+            { bx: 375, bw: 36, bh: 50 }, { bx: 425, bw: 55, bh: 60 }, { bx: 495, bw: 44, bh: 44 },
+            { bx: 555, bw: 64, bh: 58 }, { bx: 635, bw: 38, bh: 48 }, { bx: 688, bw: 48, bh: 54 },
+            { bx: 750, bw: 46, bh: 44 }
         ];
 
-        buildings.forEach(b => {
-            this.ctx.fillStyle = "#090d16";
-            this.ctx.fillRect(x + b.bx, y + h - b.bh, b.bw, b.bh);
+        buildingsFar.forEach((b, idx) => {
+            const bX = x + b.bx;
+            const bY = y + h - b.bh;
+            this.ctx.fillStyle = idx % 2 === 0 ? "#050914" : "#080e1e";
+            this.ctx.fillRect(bX, bY, b.bw, b.bh);
 
-            // Lit window dots in buildings
-            this.ctx.fillStyle = "#fde047";
-            for (let wy = y + h - b.bh + 4; wy < y + h - 4; wy += 6) {
-                for (let wx = x + b.bx + 4; wx < x + b.bx + b.bw - 4; wx += 6) {
-                    if ((wx + wy) % 5 === 0) {
-                        this.ctx.fillRect(wx, wy, 2, 2);
+            // Communication Spire with Blinking Aviation Beacon
+            this.ctx.strokeStyle = "#1e293b";
+            this.ctx.lineWidth = 1;
+            this.ctx.beginPath();
+            this.ctx.moveTo(bX + b.bw / 2, bY);
+            this.ctx.lineTo(bX + b.bw / 2, bY - 14);
+            this.ctx.stroke();
+
+            const isBeaconOn = (this.frame + idx * 15) % 50 < 25;
+            this.ctx.fillStyle = isBeaconOn ? "#ef4444" : "#450a0a";
+            this.ctx.fillRect(bX + b.bw / 2 - 1, bY - 15, 2.5, 2.5);
+
+            // Lit Window Matrix Dots in Skyscrapers
+            this.ctx.fillStyle = idx % 3 === 0 ? "#38bdf8" : (idx % 3 === 1 ? "#fbbf24" : "#a855f7");
+            for (let wy = bY + 6; wy < y + h - 6; wy += 7) {
+                for (let wx = bX + 4; wx < bX + b.bw - 4; wx += 6) {
+                    if ((wx * 7 + wy * 13) % 4 === 0) {
+                        this.ctx.fillRect(wx, wy, 2, 2.5);
                     }
                 }
             }
         });
 
-        // Radio Tower with Blinking Red Beacon
-        this.ctx.strokeStyle = "#334155";
+        // 4. Smooth Flying Futuristic Aerocars (Sky Vehicles Gliding Across Metropolis)
+        if (this.skyVehicles) {
+            this.skyVehicles.forEach(veh => {
+                veh.x += veh.speed;
+                if (veh.speed > 0 && veh.x > w + 20) veh.x = -20;
+                else if (veh.speed < 0 && veh.x < -20) veh.x = w + 20;
+
+                const vx = x + veh.x;
+                const vy = y + veh.y;
+
+                // Glowing Ion Engine Tail
+                this.ctx.fillStyle = veh.tail;
+                this.ctx.shadowColor = veh.tail;
+                this.ctx.shadowBlur = 8;
+                this.ctx.fillRect(veh.speed > 0 ? vx - veh.length : vx + 6, vy + 1, veh.length, 1.8);
+                this.ctx.shadowBlur = 0;
+
+                // Vehicle Body
+                this.ctx.fillStyle = "#ffffff";
+                this.ctx.fillRect(vx, vy, 6, 2.5);
+
+                // Front Headlight Beam
+                this.ctx.fillStyle = veh.color;
+                this.ctx.fillRect(veh.speed > 0 ? vx + 6 : vx - 3, vy + 0.5, 3, 2);
+            });
+        }
+
+        // 5. Architectural Curved Glass Dome Truss Rafters & Titanium Mullions
+        const mullionStep = 80;
+        this.ctx.strokeStyle = "rgba(30, 41, 59, 0.85)";
+        this.ctx.lineWidth = 3;
+        for (let mx = x + mullionStep; mx < x + w; mx += mullionStep) {
+            this.ctx.beginPath();
+            this.ctx.moveTo(mx, y);
+            this.ctx.lineTo(mx, y + h);
+            this.ctx.stroke();
+
+            // Rivet bolts on mullions
+            this.ctx.fillStyle = "#64748b";
+            this.ctx.fillRect(mx - 1.5, y + 15, 3, 3);
+            this.ctx.fillRect(mx - 1.5, y + 42, 3, 3);
+        }
+
+        // Horizontal Horizon Sill Beam
+        this.ctx.fillStyle = "#0c1524";
+        this.ctx.fillRect(x, y + h - 4, w, 4);
+        this.ctx.strokeStyle = "rgba(56, 189, 248, 0.35)";
         this.ctx.lineWidth = 1;
-        this.ctx.beginPath();
-        this.ctx.moveTo(x + 118, y + h - 36);
-        this.ctx.lineTo(x + 118, y + 6);
-        this.ctx.stroke();
+        this.ctx.strokeRect(x, y + h - 4, w, 4);
 
-        const beaconOn = this.frame % 40 < 20;
-        this.ctx.fillStyle = beaconOn ? "#ef4444" : "#450a0a";
-        this.ctx.beginPath();
-        this.ctx.arc(x + 118, y + 6, 2, 0, Math.PI * 2);
-        this.ctx.fill();
+        this.ctx.restore();
+    }
 
-        // 3 Glass Panes Mullion Dividers
+    drawVolumetricGodRays() {
+        this.ctx.save();
+        // 3 Diagonal Volumetric Light Shafts piercing from the glass dome
+        const rays = [
+            { sx: 180, sy: 50, ex: 340, ey: 480, w1: 30, w2: 120, col: "rgba(56, 189, 248, 0.05)" },
+            { sx: 450, sy: 30, ex: 450, ey: 520, w1: 45, w2: 180, col: "rgba(168, 85, 247, 0.06)" },
+            { sx: 720, sy: 50, ex: 580, ey: 480, w1: 30, w2: 120, col: "rgba(6, 182, 212, 0.05)" }
+        ];
+
+        rays.forEach(ray => {
+            const grad = this.ctx.createLinearGradient(ray.sx, ray.sy, ray.ex, ray.ey);
+            grad.addColorStop(0, ray.col);
+            grad.addColorStop(0.5, ray.col.replace("0.05", "0.025").replace("0.06", "0.03"));
+            grad.addColorStop(1, "transparent");
+
+            this.ctx.fillStyle = grad;
+            this.ctx.beginPath();
+            this.ctx.moveTo(ray.sx - ray.w1 / 2, ray.sy);
+            this.ctx.lineTo(ray.sx + ray.w1 / 2, ray.sy);
+            this.ctx.lineTo(ray.ex + ray.w2 / 2, ray.ey);
+            this.ctx.lineTo(ray.ex - ray.w2 / 2, ray.ey);
+            this.ctx.closePath();
+            this.ctx.fill();
+        });
+
+        // Floating Luminous Dust Motes
+        if (this.godRayDustMotes) {
+            this.godRayDustMotes.forEach(mote => {
+                mote.y += mote.speedY;
+                mote.x += mote.speedX;
+                if (mote.y > 540) mote.y = 60;
+                if (mote.x < 30 || mote.x > 810) mote.speedX *= -1;
+
+                this.ctx.fillStyle = `rgba(224, 242, 254, ${mote.alpha})`;
+                this.ctx.fillRect(mote.x, mote.y, mote.size, mote.size);
+            });
+        }
+        this.ctx.restore();
+    }
+
+    drawWorkstationSpotlights() {
+        this.ctx.save();
+        // Dramatic overhead cone spotlights shining down on stations
+        const spots = [
+            { x: this.stations.scout.x, y: this.stations.scout.y, color: "#3b82f6", r: 95 },
+            { x: this.stations.pulse.x, y: this.stations.pulse.y, color: "#a855f7", r: 125 },
+            { x: this.stations.link.x, y: this.stations.link.y, color: "#06b6d4", r: 95 },
+            { x: this.stations.boss.x, y: this.stations.boss.y, color: "#10b981", r: 115 }
+        ];
+
+        spots.forEach(sp => {
+            const coneGrad = this.ctx.createRadialGradient(sp.x, sp.y - 10, 12, sp.x, sp.y, sp.r);
+            coneGrad.addColorStop(0, `${sp.color}25`);
+            coneGrad.addColorStop(0.5, `${sp.color}0b`);
+            coneGrad.addColorStop(1, "transparent");
+
+            this.ctx.fillStyle = coneGrad;
+            this.ctx.beginPath();
+            this.ctx.arc(sp.x, sp.y, sp.r, 0, Math.PI * 2);
+            this.ctx.fill();
+        });
+        this.ctx.restore();
+    }
+
+    drawGeminiReactorMonolith() {
+        this.ctx.save();
+        const rx = 450;
+        const ry = 8;
+        const rw = 76;
+        const rh = 195;
+        const isProcessing = (this.roomState === 'processing');
+
+        // 1. Heavy Industrial Drop Shadow
+        this.ctx.fillStyle = "rgba(0, 0, 0, 0.75)";
+        this.ctx.fillRect(rx - rw / 2 + 4, ry + 4, rw, rh);
+
+        // 2. Dark Titanium Monolith Tower Casing
+        this.ctx.fillStyle = "#070c18";
+        this.ctx.fillRect(rx - rw / 2, ry, rw, rh);
+
+        // Tower Outer Edge Armor Plates & Seams
         this.ctx.strokeStyle = "#1e293b";
         this.ctx.lineWidth = 2;
-        this.ctx.strokeRect(x, y, w, h);
+        this.ctx.strokeRect(rx - rw / 2, ry, rw, rh);
 
-        this.ctx.beginPath();
-        this.ctx.moveTo(x + w / 3, y);
-        this.ctx.lineTo(x + w / 3, y + h);
-        this.ctx.moveTo(x + (w * 2) / 3, y);
-        this.ctx.lineTo(x + (w * 2) / 3, y + h);
-        this.ctx.stroke();
+        // Bevel Highlight & Shadow Lines
+        this.ctx.fillStyle = "rgba(255, 255, 255, 0.08)";
+        this.ctx.fillRect(rx - rw / 2, ry, rw, 2);
+        this.ctx.fillRect(rx - rw / 2, ry, 2, rh);
 
-        // Diagonal Glass Sheen Reflection
-        this.ctx.fillStyle = "rgba(255, 255, 255, 0.05)";
+        // Lateral Hazard Chevron Stripes (Warning High Voltage Reactor)
+        this.ctx.fillStyle = "rgba(245, 158, 11, 0.35)";
+        for (let y = ry + 20; y < ry + rh - 20; y += 36) {
+            this.ctx.fillRect(rx - rw / 2 + 3, y, 6, 8);
+            this.ctx.fillRect(rx + rw / 2 - 9, y, 6, 8);
+        }
+
+        // 3. Central Vertical Glass Tube (Silinder Kristal Reaktor)
+        const tubeW = 34;
+        const tubeX = rx - tubeW / 2;
+        const tubeY = ry + 16;
+        const tubeH = rh - 32;
+
+        // Tube Inner Dark Core
+        this.ctx.fillStyle = "#030611";
+        this.ctx.fillRect(tubeX, tubeY, tubeW, tubeH);
+
+        // 4. Vertical Flowing Plasma Core Stream (Pulsing Energy Stream)
+        const pulse = Math.sin(this.frame * (isProcessing ? 0.15 : 0.08));
+        const plasmaGrad = this.ctx.createLinearGradient(tubeX, tubeY, tubeX + tubeW, tubeY);
+        plasmaGrad.addColorStop(0, "rgba(168, 85, 247, 0.2)");
+        plasmaGrad.addColorStop(0.3, isProcessing ? "#e879f9" : "#c084fc");
+        plasmaGrad.addColorStop(0.5, "#ffffff");
+        plasmaGrad.addColorStop(0.7, isProcessing ? "#a855f7" : "#818cf8");
+        plasmaGrad.addColorStop(1, "rgba(56, 189, 248, 0.2)");
+
+        this.ctx.fillStyle = plasmaGrad;
+        this.ctx.shadowColor = isProcessing ? "#d946ef" : "#a855f7";
+        this.ctx.shadowBlur = isProcessing ? 20 : 12;
+        
+        // Undulating plasma column
         this.ctx.beginPath();
-        this.ctx.moveTo(x + 20, y + h);
-        this.ctx.lineTo(x + 60, y + h);
-        this.ctx.lineTo(x + 40, y);
-        this.ctx.lineTo(x, y);
+        const pMidX = rx + pulse * 3;
+        this.ctx.moveTo(pMidX - 6, tubeY);
+        this.ctx.lineTo(pMidX + 6, tubeY);
+        this.ctx.lineTo(pMidX + 9 - pulse * 2, tubeY + tubeH);
+        this.ctx.lineTo(pMidX - 9 + pulse * 2, tubeY + tubeH);
         this.ctx.closePath();
         this.ctx.fill();
+        this.ctx.shadowBlur = 0;
+
+        // Rising ionized spark motes inside cylinder
+        this.ctx.fillStyle = "#ffffff";
+        for (let i = 0; i < 6; i++) {
+            const sparkProg = (this.frame * (isProcessing ? 3.5 : 1.8) + i * 32) % tubeH;
+            const sparkY = (tubeY + tubeH) - sparkProg;
+            const sparkX = rx + Math.sin(this.frame * 0.1 + i) * 8;
+            this.ctx.fillRect(sparkX - 1, sparkY, 2.5, 3.5);
+        }
+
+        // Glass Tube Specular Reflection (Diagonal Sheen)
+        this.ctx.fillStyle = "rgba(255, 255, 255, 0.12)";
+        this.ctx.fillRect(tubeX + 3, tubeY, 3, tubeH);
+
+        this.ctx.strokeStyle = "rgba(168, 85, 247, 0.6)";
+        this.ctx.lineWidth = 1.5;
+        this.ctx.strokeRect(tubeX, tubeY, tubeW, tubeH);
+
+        // 5. Rotating Magnetic Containment Rings (3 Cincin Penahan Plasma)
+        [tubeY + 28, tubeY + tubeH / 2, tubeY + tubeH - 28].forEach((cy, idx) => {
+            const ringPulse = Math.sin(this.frame * 0.1 + idx * 1.5);
+            // Outer Ring Bracket
+            this.ctx.fillStyle = "#1e293b";
+            this.ctx.fillRect(rx - rw / 2 + 2, cy - 5, rw - 4, 10);
+            this.ctx.strokeStyle = "#38bdf8";
+            this.ctx.lineWidth = 1.2;
+            this.ctx.strokeRect(rx - rw / 2 + 2, cy - 5, rw - 4, 10);
+
+            // Ring Center Magnetic Emitter Dot
+            this.ctx.fillStyle = (ringPulse > 0) ? "#38bdf8" : "#818cf8";
+            this.ctx.shadowColor = "#38bdf8";
+            this.ctx.shadowBlur = 8;
+            this.ctx.beginPath();
+            this.ctx.arc(rx, cy, 3.5, 0, Math.PI * 2);
+            this.ctx.fill();
+            this.ctx.shadowBlur = 0;
+        });
+
+        // 6. Floor Base Anchoring Flange & Heavy Coolant Conduits
+        this.ctx.fillStyle = "#0f172a";
+        this.ctx.fillRect(rx - rw / 2 - 8, ry + rh - 12, rw + 16, 16);
+        this.ctx.strokeStyle = "#334155";
+        this.ctx.lineWidth = 1.5;
+        this.ctx.strokeRect(rx - rw / 2 - 8, ry + rh - 12, rw + 16, 16);
+
+        // Hex bolts along flange
+        this.ctx.fillStyle = "#94a3b8";
+        for (let bx = rx - rw / 2 - 4; bx <= rx + rw / 2 + 4; bx += 14) {
+            this.ctx.fillRect(bx, ry + rh - 6, 3, 3);
+        }
+
+        // 7. Hologram Title Banner Floating on Monolith Top
+        this.ctx.fillStyle = "rgba(15, 23, 42, 0.9)";
+        this.ctx.beginPath();
+        this.ctx.roundRect(rx - 75, ry + 2, 150, 16, 4);
+        this.ctx.fill();
+        this.ctx.strokeStyle = isProcessing ? "#d946ef" : "#a855f7";
+        this.ctx.lineWidth = 1.2;
+        this.ctx.stroke();
+
+        this.ctx.fillStyle = isProcessing ? "#f0abfc" : "#e9d5ff";
+        this.ctx.font = "bold 8px 'Orbitron', monospace";
+        this.ctx.textAlign = "center";
+        this.ctx.fillText(isProcessing ? "⚡ REACTOR OVERDRIVE // PULSING" : "✨ GEMINI 2.5 FLASH // MONOLITH CORE", rx, ry + 13);
+
+        this.ctx.restore();
+    }
+
+    drawHolographicCentralGlobe() {
+        this.ctx.save();
+        const gx = 450;
+        const gy = 295;
+        const r = 38;
+
+        this.centralGlobeAngle = (this.centralGlobeAngle || 0) + 0.02;
+        const ang = this.centralGlobeAngle;
+
+        // 1. Floor Holographic Projector Emitter Base
+        this.ctx.fillStyle = "rgba(6, 182, 212, 0.15)";
+        this.ctx.beginPath();
+        this.ctx.ellipse(gx, gy + 38, 44, 14, 0, 0, Math.PI * 2);
+        this.ctx.fill();
+        this.ctx.strokeStyle = "#38bdf8";
+        this.ctx.lineWidth = 1.2;
+        this.ctx.stroke();
+
+        // Concentric emitter pulse ring
+        const emitPulse = (this.frame * 0.8) % 35;
+        this.ctx.strokeStyle = `rgba(56, 189, 248, ${Math.max(0, 1 - emitPulse / 35)})`;
+        this.ctx.beginPath();
+        this.ctx.ellipse(gx, gy + 38, 14 + emitPulse, (14 + emitPulse) * 0.35, 0, 0, Math.PI * 2);
+        this.ctx.stroke();
+
+        // Vertical holographic projector light cone
+        const coneGrad = this.ctx.createLinearGradient(gx, gy + 38, gx, gy);
+        coneGrad.addColorStop(0, "rgba(56, 189, 248, 0.25)");
+        coneGrad.addColorStop(1, "rgba(168, 85, 247, 0.05)");
+        this.ctx.fillStyle = coneGrad;
+        this.ctx.beginPath();
+        this.ctx.moveTo(gx - 28, gy + 38);
+        this.ctx.lineTo(gx + 28, gy + 38);
+        this.ctx.lineTo(gx + r, gy);
+        this.ctx.lineTo(gx - r, gy);
+        this.ctx.closePath();
+        this.ctx.fill();
+
+        // 2. 3D Wireframe Cyber-Globe Sphere
+        this.ctx.strokeStyle = "rgba(56, 189, 248, 0.75)";
+        this.ctx.lineWidth = 1.2;
+
+        // Outer Sphere Rim
+        this.ctx.beginPath();
+        this.ctx.arc(gx, gy, r, 0, Math.PI * 2);
+        this.ctx.stroke();
+
+        // Soft internal sphere glow
+        const sphereGlow = this.ctx.createRadialGradient(gx, gy, 4, gx, gy, r);
+        sphereGlow.addColorStop(0, "rgba(168, 85, 247, 0.35)");
+        sphereGlow.addColorStop(0.6, "rgba(56, 189, 248, 0.15)");
+        sphereGlow.addColorStop(1, "transparent");
+        this.ctx.fillStyle = sphereGlow;
+        this.ctx.fill();
+
+        // Latitude Rings
+        [-20, 0, 20].forEach(latY => {
+            const latW = Math.sqrt(Math.max(0, r * r - latY * latY));
+            this.ctx.strokeStyle = "rgba(56, 189, 248, 0.4)";
+            this.ctx.beginPath();
+            this.ctx.ellipse(gx, gy + latY, latW, latW * 0.3, 0, 0, Math.PI * 2);
+            this.ctx.stroke();
+        });
+
+        // 3D Rotating Longitude Ellipses
+        for (let i = 0; i < 4; i++) {
+            const rotA = ang + (i * Math.PI) / 4;
+            const longW = Math.cos(rotA) * r;
+            this.ctx.strokeStyle = (Math.cos(rotA) > 0) ? "rgba(56, 189, 248, 0.65)" : "rgba(168, 85, 247, 0.35)";
+            this.ctx.beginPath();
+            this.ctx.ellipse(gx, gy, Math.abs(longW), r, 0, 0, Math.PI * 2);
+            this.ctx.stroke();
+        }
+
+        // 3. Tilted Planetary Orbital Ring
+        this.ctx.save();
+        this.ctx.translate(gx, gy);
+        this.ctx.rotate(-0.35);
+        this.ctx.strokeStyle = "#e879f9";
+        this.ctx.lineWidth = 1.4;
+        this.ctx.shadowColor = "#e879f9";
+        this.ctx.shadowBlur = 8;
+        this.ctx.beginPath();
+        this.ctx.ellipse(0, 0, r + 16, (r + 16) * 0.32, 0, 0, Math.PI * 2);
+        this.ctx.stroke();
+        this.ctx.shadowBlur = 0;
+
+        // Orbiting Satellite Data Packet Node
+        const orbA = ang * 2.2;
+        const satX = Math.cos(orbA) * (r + 16);
+        const satY = Math.sin(orbA) * (r + 16) * 0.32;
+        this.ctx.fillStyle = "#ffffff";
+        this.ctx.shadowColor = "#38bdf8";
+        this.ctx.shadowBlur = 10;
+        this.ctx.beginPath();
+        this.ctx.arc(satX, satY, 3, 0, Math.PI * 2);
+        this.ctx.fill();
+        this.ctx.shadowBlur = 0;
+        this.ctx.restore();
+
+        // 4. Central Pulsing Neural Core
+        const corePulse = Math.sin(this.frame * 0.12) * 2;
+        this.ctx.fillStyle = "#ffffff";
+        this.ctx.shadowColor = "#38bdf8";
+        this.ctx.shadowBlur = 14;
+        this.ctx.beginPath();
+        this.ctx.arc(gx, gy, 5 + corePulse, 0, Math.PI * 2);
+        this.ctx.fill();
+        this.ctx.shadowBlur = 0;
+
+        // 5. Overhead Holographic HUD Label
+        this.ctx.fillStyle = "rgba(15, 23, 42, 0.85)";
+        this.ctx.beginPath();
+        this.ctx.roundRect(gx - 60, gy - r - 18, 120, 14, 3);
+        this.ctx.fill();
+        this.ctx.strokeStyle = "#38bdf8";
+        this.ctx.lineWidth = 1;
+        this.ctx.stroke();
+
+        this.ctx.fillStyle = "#38bdf8";
+        this.ctx.font = "bold 7px 'Orbitron', monospace";
+        this.ctx.textAlign = "center";
+        this.ctx.fillText("🌐 AI NEURAL ORB // GLOBAL INTEL", gx, gy - r - 8);
+
+        this.ctx.restore();
+    }
+
+    drawAerialParticleStreams() {
+        if (!this.aerialStreamParticles) return;
+        this.ctx.save();
+
+        const paths = [
+            {
+                p0: { x: 160, y: 195 }, cp1: { x: 260, y: 110 }, cp2: { x: 380, y: 130 }, p3: { x: 450, y: 195 },
+                color: "#38bdf8", glow: "#0284c7"
+            },
+            {
+                p0: { x: 450, y: 205 }, cp1: { x: 410, y: 280 }, cp2: { x: 490, y: 350 }, p3: { x: 450, y: 440 },
+                color: "#c084fc", glow: "#a855f7"
+            },
+            {
+                p0: { x: 450, y: 440 }, cp1: { x: 580, y: 410 }, cp2: { x: 670, y: 280 }, p3: { x: 740, y: 195 },
+                color: "#06b6d4", glow: "#0891b2"
+            }
+        ];
+
+        // 1. Draw Faint Translucent Aerial Flow Ribbons
+        paths.forEach(p => {
+            this.ctx.strokeStyle = `${p.color}25`;
+            this.ctx.lineWidth = 2.5;
+            this.ctx.beginPath();
+            this.ctx.moveTo(p.p0.x, p.p0.y);
+            this.ctx.bezierCurveTo(p.cp1.x, p.cp1.y, p.cp2.x, p.cp2.y, p.p3.x, p.p3.y);
+            this.ctx.stroke();
+        });
+
+        const getBezierPoint = (t, p0, cp1, cp2, p3) => {
+            const u = 1 - t;
+            const tt = t * t;
+            const uu = u * u;
+            const uuu = uu * u;
+            const ttt = tt * t;
+            return {
+                x: uuu * p0.x + 3 * uu * t * cp1.x + 3 * u * tt * cp2.x + ttt * p3.x,
+                y: uuu * p0.y + 3 * uu * t * cp1.y + 3 * u * tt * cp2.y + ttt * p3.y
+            };
+        };
+
+        // 2. Animate Shimmering Stardust Particle Streams
+        this.aerialStreamParticles.forEach(part => {
+            part.progress += part.speed;
+            if (part.progress >= 1) part.progress = 0;
+
+            const path = paths[part.stream];
+            const pt = getBezierPoint(part.progress, path.p0, path.cp1, path.cp2, path.p3);
+
+            this.ctx.fillStyle = path.color;
+            this.ctx.shadowColor = path.glow;
+            this.ctx.shadowBlur = 8;
+            this.ctx.beginPath();
+            this.ctx.arc(pt.x, pt.y, part.size, 0, Math.PI * 2);
+            this.ctx.fill();
+            this.ctx.shadowBlur = 0;
+
+            // Trailing Micro Sparkle
+            if (part.progress > 0.05) {
+                const trailPt = getBezierPoint(part.progress - 0.03, path.p0, path.cp1, path.cp2, path.p3);
+                this.ctx.fillStyle = "rgba(255, 255, 255, 0.4)";
+                this.ctx.fillRect(trailPt.x - 0.7, trailPt.y - 0.7, 1.4, 1.4);
+            }
+        });
 
         this.ctx.restore();
     }
@@ -2524,10 +4472,17 @@ class Office2DEngine {
     }
 
     drawStationFurniture() {
-        // Draw 4 Main Workstations
+        // Station 1: RSS Radar Scanner Console
         this.drawDesk(this.stations.scout, "STATION 1: RSS RADAR", "#3b82f6");
+
+        // Station 2: Colossal Monolithic Energy Reactor Pillar & AI Studio Desk
+        this.drawGeminiReactorMonolith();
         this.drawDesk(this.stations.pulse, "STATION 2: GEMINI AI", "#a855f7");
+
+        // Station 3: LinkedIn REST Gateway Hub
         this.drawDesk(this.stations.link, "STATION 3: LINKEDIN", "#06b6d4");
+
+        // Station 4: Chief Executive Command Desk (Positioned on Elevated Dais)
         this.drawDesk(this.stations.boss, "CHIEF LEADER DESK", "#10b981");
     }
 
@@ -2908,6 +4863,31 @@ class Office2DEngine {
         this.ctx.textAlign = "center";
         this.ctx.fillText(agent.emoji, agent.x, agent.y - 36 - bounceY);
 
+        // 8b. Spatial Intercom Walkie-Talkie Emote
+        if (agent.walkieTalkieEmoteTimer && agent.walkieTalkieEmoteTimer > 0) {
+            const wavePulse = Math.sin(this.frame * 0.3) * 3;
+            this.ctx.font = "16px sans-serif";
+            this.ctx.textAlign = "center";
+            this.ctx.fillText("📻", agent.x, agent.y - 52 - bounceY);
+
+            // Pulsing radio wave arcs
+            this.ctx.strokeStyle = "#38bdf8";
+            this.ctx.lineWidth = 1.5;
+            this.ctx.beginPath();
+            this.ctx.arc(agent.x + 8, agent.y - 56 - bounceY, 7 + wavePulse, -0.6, 0.6);
+            this.ctx.stroke();
+            this.ctx.beginPath();
+            this.ctx.arc(agent.x + 8, agent.y - 56 - bounceY, 12 + wavePulse, -0.6, 0.6);
+            this.ctx.stroke();
+        }
+
+        // 8c. Carrying Tool Item (War Room Self-Healing Toolbox)
+        if (agent.carryingItem) {
+            this.ctx.font = "16px sans-serif";
+            this.ctx.textAlign = "center";
+            this.ctx.fillText(agent.carryingItem, agent.x + 14, agent.y + 4 - bounceY);
+        }
+
         // 9. Floating Micro-Status & Ekspresi Emote Balon
         if (key === 'boss' && this.isWaitingApproval) {
             // Requirement 1: Visual Alert di Station 4 — Badge pulsing oranye/kuning: Draft Ready for Review (1) & ikon dokumen kecil berdenyut
@@ -2990,6 +4970,37 @@ class Office2DEngine {
             this.ctx.font = "bold 8px 'Fira Code'";
             this.ctx.textAlign = "center";
             this.ctx.fillText(`${microEmote} ${microText}`, agent.x, pillY + 11);
+
+            // 9b. RPG Level Badge & Mini XP Progress Bar
+            const rpg = (this.agentRpg && this.agentRpg[key]) || { level: 1, xp: 50, next_xp: 100, title: agent.role };
+            const badgeW = 34;
+            const badgeH = 12;
+            const badgeX = agent.x - badgeW / 2;
+            const badgeY = pillY - 16;
+
+            this.ctx.fillStyle = "rgba(10, 15, 29, 0.95)";
+            this.ctx.beginPath();
+            this.ctx.roundRect(badgeX, badgeY, badgeW, badgeH, 4);
+            this.ctx.fill();
+            this.ctx.strokeStyle = "#f59e0b";
+            this.ctx.lineWidth = 1;
+            this.ctx.stroke();
+
+            this.ctx.fillStyle = "#fbbf24";
+            this.ctx.font = "bold 7px 'Fira Code'";
+            this.ctx.textAlign = "center";
+            this.ctx.fillText(`Lv.${rpg.level}`, agent.x, badgeY + 8.5);
+
+            // Mini XP Progress Bar under Level Badge
+            const xpBarW = 36;
+            const xpBarH = 2.5;
+            const xpBarX = agent.x - xpBarW / 2;
+            const xpBarY = badgeY + badgeH + 1.5;
+            this.ctx.fillStyle = "rgba(15, 23, 42, 0.9)";
+            this.ctx.fillRect(xpBarX, xpBarY, xpBarW, xpBarH);
+            const xpPct = Math.min(1.0, Math.max(0.08, rpg.xp / (rpg.next_xp || 100)));
+            this.ctx.fillStyle = "#10b981";
+            this.ctx.fillRect(xpBarX, xpBarY, xpBarW * xpPct, xpBarH);
         }
 
         // 10. Overhead Individual Agent Task Progress Bar
@@ -4278,6 +6289,785 @@ function resetPipelineTopology() {
     addLog("BUILDER", "Topologi kabel di-reset ke default pipeline.", "info");
 }
 
+// ==========================================
+// 8. "GOD MODE" SPATIAL INTERCOM CONTROLLERS
+// ==========================================
+function openSpatialIntercom() {
+    const modal = document.getElementById("spatialIntercomModal");
+    const backdrop = document.getElementById("intercomModalBackdrop");
+    const input = document.getElementById("intercomInput");
+    if (modal) {
+        modal.classList.remove("hidden");
+        modal.style.display = "flex";
+    }
+    if (backdrop) {
+        backdrop.classList.remove("hidden");
+        backdrop.style.display = "block";
+    }
+    sfx.playClick();
+    if (input) {
+        setTimeout(() => input.focus(), 80);
+    }
+}
+
+function closeIntercomModal() {
+    const modal = document.getElementById("spatialIntercomModal");
+    const backdrop = document.getElementById("intercomModalBackdrop");
+    if (modal) {
+        modal.classList.add("hidden");
+        modal.style.display = "none";
+    }
+    if (backdrop) {
+        backdrop.classList.add("hidden");
+        backdrop.style.display = "none";
+    }
+    sfx.playClick();
+}
+
+function sendIntercomCommand() {
+    const input = document.getElementById("intercomInput");
+    if (!input || !input.value.trim()) {
+        showToast("Ketik perintah natural language terlebih dahulu!", "warning");
+        return;
+    }
+    const commandText = input.value.trim();
+
+    fetch("/api/intercom", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ command: commandText })
+    })
+    .then(res => res.json())
+    .then(data => {
+        if (data.success) {
+            // Update HUD feedback card
+            const feedbackCard = document.getElementById("intercomFeedbackCard");
+            const feedbackAgent = document.getElementById("intercomFeedbackAgent");
+            const feedbackMsg = document.getElementById("intercomFeedbackMsg");
+            if (feedbackCard) feedbackCard.classList.remove("hidden");
+            if (feedbackAgent) {
+                const names = { scout: "Scout (News Radar)", pulse: "Pulse (Gemini AI)", boss: "Chief Boss (Review Desk)", link: "Link (LinkedIn Relay)" };
+                feedbackAgent.textContent = names[data.target_agent] || `${data.target_agent.toUpperCase()} Agent`;
+            }
+            if (feedbackMsg) feedbackMsg.textContent = `"${data.response}"`;
+
+            // Spatial in-game feedback: agent turns to camera & shows walkie-talkie
+            if (window.officeEngine) {
+                const agent = window.officeEngine.agents[data.target_agent];
+                if (agent) {
+                    agent.facing = 'down';
+                    agent.walkieTalkieEmoteTimer = 180; // 3 seconds
+                    sfx.playIntercomChirp();
+                    showSpeechBubble(data.target_agent, `📻 "${data.response}"`, 4200);
+                }
+            }
+
+            addLog("INTERCOM", `[COMMAND: "${commandText}"] ➔ ${data.target_agent.toUpperCase()}: ${data.response} (${data.prompt_update})`, "info");
+            showToast(`Intercom terhubung: Instruksi diterima oleh ${data.target_agent.toUpperCase()}! 📻`, "success");
+            input.value = "";
+        } else {
+            showToast("Gagal mengirim perintah intercom", "error");
+        }
+    })
+    .catch(err => {
+        console.error("Intercom error:", err);
+        showToast("Koneksi Intercom terputus", "error");
+    });
+}
+
+function applyIntercomQuickCmd(cmd) {
+    const input = document.getElementById("intercomInput");
+    if (input) {
+        input.value = cmd;
+        sendIntercomCommand();
+    }
+}
+
+// ==========================================
+// 9. "NEURO-VISION" X-RAY HEATMAP CONTROLLER
+// ==========================================
+function toggleNeuroVision() {
+    if (window.officeEngine) {
+        window.officeEngine.toggleNeuroVision();
+    }
+}
+
+// ==========================================
+// 10. "WAR ROOM & SELF-HEALING" CONTROLLERS
+// ==========================================
+function triggerWarRoomIncident(stationKey = 'pulse', reason = 'Gemini Quota Exhaustion / 429 Rate Limit') {
+    if (window.officeEngine) {
+        window.officeEngine.triggerWarRoomIncident(stationKey, reason);
+    }
+}
+
+function resolveWarRoomIncident() {
+    if (window.officeEngine) {
+        window.officeEngine.finishSelfHealing();
+    }
+}
+
+function closeIncidentCard() {
+    const card = document.getElementById("incidentActionCard");
+    if (card) card.classList.add("hidden");
+}
+
+function executeFallbackAction(action) {
+    fetch("/api/warroom/fallback", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ action: action })
+    })
+    .then(res => res.json())
+    .then(data => {
+        if (data.success) {
+            showToast(`Mitigasi Aktif: ${data.message} ⚡`, "success");
+            addLog("WAR_ROOM", `[1-CLICK FALLBACK] ${data.message}`, "success");
+            closeIncidentCard();
+            if (window.officeEngine) {
+                window.officeEngine.finishSelfHealing();
+            }
+        }
+    })
+    .catch(err => {
+        console.error("Fallback error:", err);
+        showToast("Gagal mengeksekusi aksi mitigasi", "error");
+    });
+}
+
+// ==========================================
+// 11. MULTIPLAYER COLLABORATIVE MEMO BOARD
+// ==========================================
+function openStickyMemoModal() {
+    const modal = document.getElementById("stickyMemoModal");
+    const backdrop = document.getElementById("stickyMemoModalBackdrop");
+    if (modal) {
+        modal.classList.remove("hidden");
+        modal.style.display = "flex";
+    }
+    if (backdrop) {
+        backdrop.classList.remove("hidden");
+        backdrop.style.display = "block";
+    }
+    sfx.playClick();
+    if (window.officeEngine) {
+        window.officeEngine.loadPinnedMemos();
+    }
+}
+
+function closeStickyMemoModal() {
+    const modal = document.getElementById("stickyMemoModal");
+    const backdrop = document.getElementById("stickyMemoModalBackdrop");
+    if (modal) {
+        modal.classList.add("hidden");
+        modal.style.display = "none";
+    }
+    if (backdrop) {
+        backdrop.classList.add("hidden");
+        backdrop.style.display = "none";
+    }
+    sfx.playClick();
+}
+
+function submitNewStickyMemo() {
+    const authorInput = document.getElementById("memoAuthorInput");
+    const textInput = document.getElementById("memoTextInput");
+    const colorSelect = document.getElementById("memoColorSelect");
+
+    const author = (authorInput && authorInput.value.trim()) || "Guest Contributor";
+    const text = textInput ? textInput.value.trim() : "";
+    const color = colorSelect ? colorSelect.value : "#fef08a";
+
+    if (!text) {
+        showToast("Tulis isi catatan sticky note terlebih dahulu!", "warning");
+        return;
+    }
+
+    fetch("/api/memos", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+            author: author,
+            text: text,
+            color: color,
+            station: "boss"
+        })
+    })
+    .then(res => res.json())
+    .then(data => {
+        if (data.success) {
+            if (textInput) textInput.value = "";
+            sfx.playSuccessChime();
+            showToast("Sticky note berhasil ditempel di meja Chief Desk! 📌", "success");
+            addLog("MEMO", `[${author}] menempelkan memo: "${text}"`, "info");
+            if (window.officeEngine) {
+                window.officeEngine.loadPinnedMemos();
+            }
+        }
+    })
+    .catch(err => {
+        console.error("Memo submit error:", err);
+        showToast("Gagal menyimpan memo", "error");
+    });
+}
+
+function deleteStickyMemo(memoId) {
+    fetch(`/api/memos/${memoId}`, {
+        method: "DELETE"
+    })
+    .then(res => res.json())
+    .then(data => {
+        if (data.success) {
+            sfx.playClick();
+            showToast("Memo berhasil dilepas dari papan.", "info");
+            if (window.officeEngine) {
+                window.officeEngine.loadPinnedMemos();
+            }
+        }
+    })
+    .catch(err => {
+        console.error("Memo delete error:", err);
+    });
+}
+
+function renderMemoGridUI(memos) {
+    const grid = document.getElementById("memoCardsGrid");
+    if (!grid) return;
+    if (!memos || memos.length === 0) {
+        grid.innerHTML = `<div style="grid-column: 1 / -1; color: var(--color-text-muted); font-size: 11px; text-align: center; padding: 18px 0;">Belum ada memo tertempel. Buat catatan pertama di atas! 📌</div>`;
+        return;
+    }
+
+    grid.innerHTML = memos.map(m => `
+        <div class="memo-card-item" style="background: ${m.color || '#fef08a'};">
+            <button type="button" class="btn-del-memo" onclick="deleteStickyMemo('${m.id}')" title="Lepas memo">✕</button>
+            <div class="memo-card-pin">📌</div>
+            <div class="memo-card-text">${m.text.replace(/</g, "&lt;").replace(/>/g, "&gt;")}</div>
+            <div class="memo-card-footer">
+                <span class="memo-card-author">✍️ ${m.author || 'Anonymous'}</span>
+                <span class="memo-card-time">${m.timestamp || ''}</span>
+            </div>
+        </div>
+    `).join('');
+}
+
+// Expose functions globally for inline HTML event bindings
+window.openSpatialIntercom = openSpatialIntercom;
+window.closeIntercomModal = closeIntercomModal;
+window.sendIntercomCommand = sendIntercomCommand;
+window.applyIntercomQuickCmd = applyIntercomQuickCmd;
+window.toggleNeuroVision = toggleNeuroVision;
+window.triggerWarRoomIncident = triggerWarRoomIncident;
+window.resolveWarRoomIncident = resolveWarRoomIncident;
+window.closeIncidentCard = closeIncidentCard;
+window.executeFallbackAction = executeFallbackAction;
+window.openStickyMemoModal = openStickyMemoModal;
+window.closeStickyMemoModal = closeStickyMemoModal;
+window.submitNewStickyMemo = submitNewStickyMemo;
+window.deleteStickyMemo = deleteStickyMemo;
+window.renderMemoGridUI = renderMemoGridUI;
+
+// ==========================================
+// 12. MATRIX RAG MEMORY VAULT CONTROLLERS
+// ==========================================
+function openRagVaultDrawer() {
+    const drawer = document.getElementById("ragVaultDrawer");
+    const backdrop = document.getElementById("ragVaultBackdrop");
+    if (drawer) {
+        drawer.classList.remove("hidden");
+        drawer.style.display = "flex";
+    }
+    if (backdrop) {
+        backdrop.classList.remove("hidden");
+        backdrop.style.display = "block";
+    }
+    sfx.playClick();
+    if (window.officeEngine) {
+        window.officeEngine.loadRagVaultData();
+    }
+}
+
+function closeRagVaultDrawer() {
+    const drawer = document.getElementById("ragVaultDrawer");
+    const backdrop = document.getElementById("ragVaultBackdrop");
+    if (drawer) {
+        drawer.classList.add("hidden");
+        drawer.style.display = "none";
+    }
+    if (backdrop) {
+        backdrop.classList.add("hidden");
+        backdrop.style.display = "none";
+    }
+    sfx.playClick();
+}
+
+function triggerRagRetrievalBeam() {
+    const input = document.getElementById("ragQueryInput");
+    const query = (input && input.value.trim()) || "Claude 3.7 & Gemini 2.5 multimodal benchmarks";
+    
+    fetch("/api/rag/vault", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ query: query })
+    })
+    .then(res => res.json())
+    .then(data => {
+        if (data.success) {
+            if (window.officeEngine) {
+                window.officeEngine.fireRagRetrievalBeams(query);
+                renderVaultChunksUI(data.vault);
+                showSpeechBubble("pulse", `⚡ Menerima embedding RAG: "${query.slice(0, 30)}..." [768-dim]`, 3500);
+            }
+            showToast("Berkas Cahaya Retrieval melesat dari Vault menuju Gemini AI! 🚀", "success");
+            addLog("RAG_VAULT", `[RETRIEVAL QUERY: "${query}"] Chunks injected to Gemini context window.`, "info");
+        }
+    })
+    .catch(err => {
+        console.error("RAG retrieval error:", err);
+    });
+}
+
+function renderVaultChunksUI(vault) {
+    if (!vault) return;
+    const countEl = document.getElementById("vaultVectorsCount");
+    if (countEl && vault.total_vectors) {
+        countEl.textContent = `${vault.total_vectors.toLocaleString()} Vectors`;
+    }
+    const colEl = document.getElementById("vaultCollectionName");
+    if (colEl && vault.collection) colEl.textContent = vault.collection;
+
+    const list = document.getElementById("vaultChunksList");
+    if (!list) return;
+    const chunks = vault.recent_chunks || [];
+    if (chunks.length === 0) {
+        list.innerHTML = `<div style="color: #64748b; font-size: 11px; text-align: center; padding: 20px;">Belum ada chunk yang di-retrieve.</div>`;
+        return;
+    }
+
+    list.innerHTML = chunks.map(c => `
+        <div class="chunk-card">
+            <div class="chunk-header-row">
+                <span class="chunk-source-tag">📄 ${c.source || 'unknown'}</span>
+                <span class="chunk-similarity-pill">Score: ${(c.similarity * 100).toFixed(1)}%</span>
+            </div>
+            <h4 class="chunk-title">${c.title || c.id}</h4>
+            <p class="chunk-text">${c.text}</p>
+            <div class="chunk-footer">
+                <span>Vector: 768-dim float32</span>
+                <span>⏱️ ${c.timestamp || 'Just now'}</span>
+            </div>
+        </div>
+    `).join('');
+}
+
+// ==========================================
+// 13. BUDGET CIRCUIT-BREAKER & COST CONTROLLERS
+// ==========================================
+function openBudgetBreakerModal() {
+    const modal = document.getElementById("budgetBreakerModal");
+    const backdrop = document.getElementById("budgetBreakerBackdrop");
+    if (modal) {
+        modal.classList.remove("hidden");
+        modal.style.display = "flex";
+    }
+    if (backdrop) {
+        backdrop.classList.remove("hidden");
+        backdrop.style.display = "block";
+    }
+    sfx.playClick();
+    if (window.officeEngine) {
+        window.officeEngine.loadFinancialMetrics();
+    }
+}
+
+function closeBudgetBreakerModal() {
+    const modal = document.getElementById("budgetBreakerModal");
+    const backdrop = document.getElementById("budgetBreakerBackdrop");
+    if (modal) {
+        modal.classList.add("hidden");
+        modal.style.display = "none";
+    }
+    if (backdrop) {
+        backdrop.classList.add("hidden");
+        backdrop.style.display = "none";
+    }
+    sfx.playClick();
+}
+
+function updateBudgetSliderUI(val) {
+    const display = document.getElementById("sliderDisplayVal");
+    if (display) display.textContent = `$${parseFloat(val).toFixed(2)} USD`;
+}
+
+function saveBudgetLimit(val) {
+    const limit = parseFloat(val);
+    fetch("/api/financial/metrics", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ budget_limit: limit })
+    })
+    .then(res => res.json())
+    .then(data => {
+        if (data.success && data.financial) {
+            if (window.officeEngine) {
+                window.officeEngine.financial = data.financial;
+                updateFinancialUI(data.financial);
+            }
+            showToast(`Batas Anggaran Circuit-Breaker diatur ke $${limit.toFixed(2)}!`, "info");
+        }
+    })
+    .catch(() => {});
+}
+
+function toggleCircuitBreakerState() {
+    fetch("/api/financial/metrics", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ toggle_breaker: true })
+    })
+    .then(res => res.json())
+    .then(data => {
+        if (data.success && data.financial) {
+            if (window.officeEngine) {
+                window.officeEngine.financial = data.financial;
+                updateFinancialUI(data.financial);
+                if (data.financial.is_circuit_breaker_tripped) {
+                    sfx.playAlarmSiren();
+                    showToast("⚡ CIRCUIT-BREAKER TRIPPED! Aliran daya workstation diputus otomatis.", "warning");
+                    addLog("FINANCE", "⚡ CIRCUIT-BREAKER TRIPPED: Daya stasiun diputus akibat batas biaya.", "error");
+                } else {
+                    sfx.playSuccessChime();
+                    showToast("Grid daya kantor dipulihkan ke normal! ⚡", "success");
+                    addLog("FINANCE", "✅ Daya kantor dipulihkan ke status prima.", "success");
+                }
+            }
+        }
+    })
+    .catch(() => {});
+}
+
+function updateFinancialUI(fin) {
+    if (!fin) return;
+    const sessionCostEl = document.getElementById("bmSessionCost");
+    if (sessionCostEl) sessionCostEl.textContent = `$${(fin.session_cost || 0.042).toFixed(4)}`;
+
+    const burnRateEl = document.getElementById("bmBurnRate");
+    if (burnRateEl) burnRateEl.textContent = `${fin.burn_rate || 120} tok/dtk`;
+
+    const limitValEl = document.getElementById("bmBudgetLimitVal");
+    if (limitValEl) limitValEl.textContent = `$${(fin.budget_limit || 5.0).toFixed(2)}`;
+
+    const slider = document.getElementById("budgetRangeSlider");
+    if (slider) slider.value = fin.budget_limit || 5.0;
+
+    const display = document.getElementById("sliderDisplayVal");
+    if (display) display.textContent = `$${(fin.budget_limit || 5.0).toFixed(2)} USD`;
+
+    // Camera toolbar button text
+    const btnBreaker = document.getElementById("btnToggleBreakerModal");
+    if (btnBreaker) {
+        btnBreaker.textContent = `⚡ $${(fin.session_cost || 0.042).toFixed(2)}`;
+    }
+
+    const alertCard = document.getElementById("breakerStatusAlert");
+    const dot = document.getElementById("breakerIndicatorDot");
+    const title = document.getElementById("breakerStatusTitle");
+    const desc = document.getElementById("breakerStatusDesc");
+    const btnToggle = document.getElementById("btnToggleCircuitBreaker");
+
+    if (alertCard && dot && title && desc && btnToggle) {
+        if (fin.is_circuit_breaker_tripped) {
+            alertCard.classList.add("tripped");
+            dot.className = "bs-indicator bs-tripped";
+            title.textContent = "⚡ DAYA TERPUTUS (BREAKER TRIPPED)";
+            desc.textContent = "Batas biaya harian terlampaui. Kabel daya virtual ke workstation dipadamkan!";
+            btnToggle.textContent = "🔄 Pulihkan Grid Daya";
+            btnToggle.className = "btn btn-outline-success btn-sm";
+        } else {
+            alertCard.classList.remove("tripped");
+            dot.className = "bs-indicator bs-normal";
+            title.textContent = "GRID DAYA KANTOR NORMAL";
+            desc.textContent = "Sistem daya virtual aktif menyuplai workstation agen.";
+            btnToggle.textContent = "⚡ Uji Putus Daya (Trip)";
+            btnToggle.className = "btn btn-outline-danger btn-sm";
+        }
+    }
+}
+
+// ==========================================
+// 14. AGENT EVOLUTION & RPG SKILL LEVELING
+// ==========================================
+let currentRpgAgentKey = "scout";
+
+function openAgentSkillTreeModal(agentKey = 'scout') {
+    currentRpgAgentKey = agentKey;
+    const modal = document.getElementById("agentSkillTreeModal");
+    const backdrop = document.getElementById("agentSkillTreeBackdrop");
+    if (modal) {
+        modal.classList.remove("hidden");
+        modal.style.display = "flex";
+    }
+    if (backdrop) {
+        backdrop.classList.remove("hidden");
+        backdrop.style.display = "block";
+    }
+    sfx.playClick();
+    switchRpgAgentTab(agentKey);
+}
+
+function closeAgentSkillTreeModal() {
+    const modal = document.getElementById("agentSkillTreeModal");
+    const backdrop = document.getElementById("agentSkillTreeBackdrop");
+    if (modal) {
+        modal.classList.add("hidden");
+        modal.style.display = "none";
+    }
+    if (backdrop) {
+        backdrop.classList.add("hidden");
+        backdrop.style.display = "none";
+    }
+    sfx.playClick();
+}
+
+function switchRpgAgentTab(agentKey) {
+    currentRpgAgentKey = agentKey;
+    document.querySelectorAll(".rpg-tab-btn").forEach(btn => {
+        btn.classList.toggle("active", btn.getAttribute("data-agent") === agentKey);
+    });
+
+    fetch("/api/agents/skills")
+        .then(res => res.json())
+        .then(data => {
+            if (data.success && data.agents) {
+                if (window.officeEngine) window.officeEngine.agentRpg = data.agents;
+                renderRpgAgentProfileUI(agentKey, data.agents[agentKey]);
+            }
+        })
+        .catch(() => {});
+}
+
+function renderRpgAgentProfileUI(agentKey, agentData) {
+    if (!agentData) return;
+    const avatars = { scout: "📡", pulse: "✨", boss: "👑", link: "💼" };
+
+    const avatarBox = document.getElementById("rpgAvatarBox");
+    if (avatarBox) {
+        avatarBox.textContent = avatars[agentKey] || "🤖";
+        avatarBox.style.borderColor = agentData.badge_color || "#3b82f6";
+    }
+
+    const nameEl = document.getElementById("rpgAgentName");
+    if (nameEl) nameEl.textContent = agentData.name;
+
+    const roleEl = document.getElementById("rpgAgentRole");
+    if (roleEl) roleEl.textContent = agentData.role;
+
+    const levelBadge = document.getElementById("rpgAgentLevelBadge");
+    if (levelBadge) levelBadge.textContent = `Lv. ${agentData.level}`;
+
+    const titleEl = document.getElementById("rpgAgentTitle");
+    if (titleEl) titleEl.textContent = `${agentData.title} • ${agentData.tasks_completed || 0} Missions Done`;
+
+    const xpFill = document.getElementById("rpgXpBarFill");
+    const xpText = document.getElementById("rpgXpBarText");
+    const xpPct = Math.min(100, (agentData.xp / agentData.next_xp) * 100);
+    if (xpFill) xpFill.style.width = `${xpPct}%`;
+    if (xpText) xpText.textContent = `${agentData.xp} / ${agentData.next_xp} XP (Next: Lv. ${agentData.level + 1})`;
+
+    // Perks Grid
+    const perksGrid = document.getElementById("rpgPerksGrid");
+    if (perksGrid && agentData.perks) {
+        perksGrid.innerHTML = agentData.perks.map(p => `
+            <div class="perk-node-card ${p.unlocked ? 'unlocked' : 'locked'}">
+                <span class="perk-status ${p.unlocked ? 'unlocked' : 'locked'}">${p.unlocked ? '✅ UNLOCKED' : '🔒 LOCKED'}</span>
+                <div class="perk-name">${p.name}</div>
+                <div class="perk-desc">${p.desc}</div>
+            </div>
+        `).join('');
+    }
+
+    // Hyperparameters
+    const tempSlider = document.getElementById("rpgTempSlider");
+    const tempVal = document.getElementById("rpgTempVal");
+    if (tempSlider && agentData.temperature !== undefined) {
+        tempSlider.value = agentData.temperature;
+        if (tempVal) tempVal.textContent = agentData.temperature;
+    }
+
+    const personaSelect = document.getElementById("rpgPersonaSelect");
+    if (personaSelect && agentData.persona) {
+        personaSelect.value = agentData.persona;
+    }
+}
+
+function simulateAgentTaskXp() {
+    fetch("/api/agents/skills", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+            agent_key: currentRpgAgentKey,
+            add_xp: 25
+        })
+    })
+    .then(res => res.json())
+    .then(data => {
+        if (data.success) {
+            if (window.officeEngine) {
+                window.officeEngine.agentRpg = data.all_agents;
+                window.officeEngine.triggerLevelUpAnimation(currentRpgAgentKey);
+            }
+            renderRpgAgentProfileUI(currentRpgAgentKey, data.agent);
+            addLog("RPG", `[${currentRpgAgentKey.toUpperCase()}] Menyelesaikan tugas! Mendapatkan +25 XP (Level saat ini: Lv.${data.agent.level})`, "success");
+        }
+    })
+    .catch(() => {});
+}
+
+function saveAgentRpgConfig() {
+    const tempSlider = document.getElementById("rpgTempSlider");
+    const personaSelect = document.getElementById("rpgPersonaSelect");
+
+    const temp = tempSlider ? parseFloat(tempSlider.value) : 0.7;
+    const persona = personaSelect ? personaSelect.value : "Data-Driven Analyst";
+
+    fetch("/api/agents/skills", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+            agent_key: currentRpgAgentKey,
+            temperature: temp,
+            persona: persona
+        })
+    })
+    .then(res => res.json())
+    .then(data => {
+        if (data.success) {
+            sfx.playSuccessChime();
+            showToast(`Karakter & persona ${currentRpgAgentKey.toUpperCase()} disimpan!`, "success");
+            addLog("RPG", `[${currentRpgAgentKey.toUpperCase()}] Persona diatur ke: "${persona}", Temperature: ${temp}`, "info");
+        }
+    })
+    .catch(() => {});
+}
+
+// ==========================================
+// 15. LIVE PRODUCTION FEED & LINKEDIN ANALYTICS
+// ==========================================
+function openLinkedInAnalyticsDrawer() {
+    const drawer = document.getElementById("linkedinAnalyticsDrawer");
+    const backdrop = document.getElementById("linkedinAnalyticsBackdrop");
+    if (drawer) {
+        drawer.classList.remove("hidden");
+        drawer.style.display = "flex";
+    }
+    if (backdrop) {
+        backdrop.classList.remove("hidden");
+        backdrop.style.display = "block";
+    }
+    sfx.playClick();
+    if (window.officeEngine) {
+        window.officeEngine.loadLinkedInAnalytics();
+    }
+}
+
+function closeLinkedInAnalyticsDrawer() {
+    const drawer = document.getElementById("linkedinAnalyticsDrawer");
+    const backdrop = document.getElementById("linkedinAnalyticsBackdrop");
+    if (drawer) {
+        drawer.classList.add("hidden");
+        drawer.style.display = "none";
+    }
+    if (backdrop) {
+        backdrop.classList.add("hidden");
+        backdrop.style.display = "none";
+    }
+    sfx.playClick();
+}
+
+function simulateLinkedInViralSpike() {
+    fetch("/api/analytics/linkedin", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ action: "simulate_spike" })
+    })
+    .then(res => res.json())
+    .then(data => {
+        if (data.success && data.analytics) {
+            if (window.officeEngine) {
+                window.officeEngine.linkedinBroadcast.stats = data.analytics;
+                window.officeEngine.linkedinBroadcast.isBroadcasting = true;
+                showSpeechBubble("link", `🚀 VIRAL SURGE! +50 Likes & 200+ Impressions masuk ke LinkedIn! 👍💼`, 3500);
+                sfx.playSuccessChime();
+            }
+            renderLinkedInAnalyticsUI(data.analytics);
+            showToast("Simulasi Viral Spike Berhasil: Metrik melonjak naik! 📈", "success");
+            addLog("LINKEDIN", `[VIRAL SURGE] Likes: ${data.analytics.likes}, Impressions: ${data.analytics.impressions}`, "success");
+        }
+    })
+    .catch(() => {});
+}
+
+function renderLinkedInAnalyticsUI(data) {
+    if (!data) return;
+    const likesEl = document.getElementById("ascLikesVal");
+    if (likesEl) likesEl.textContent = data.likes || 14;
+
+    const commentsEl = document.getElementById("ascCommentsVal");
+    if (commentsEl) commentsEl.textContent = data.comments || 3;
+
+    const repostsEl = document.getElementById("ascRepostsVal");
+    if (repostsEl) repostsEl.textContent = data.reposts || 2;
+
+    const imprEl = document.getElementById("ascImpressionsVal");
+    if (imprEl) imprEl.textContent = data.impressions || 342;
+
+    const engEl = document.getElementById("ascEngagementRate");
+    if (engEl) engEl.textContent = `${data.engagement_rate || 5.6}%`;
+
+    const ctrEl = document.getElementById("ascCtr");
+    if (ctrEl) ctrEl.textContent = `${data.ctr || 2.4}%`;
+
+    const viralEl = document.getElementById("ascViralScore");
+    if (viralEl) viralEl.textContent = `${data.viral_score || 88} / 100`;
+
+    const titleEl = document.getElementById("appPostTitle");
+    if (titleEl && data.last_post_title) titleEl.textContent = data.last_post_title;
+
+    // Hourly bar chart
+    const chart = document.getElementById("analyticsBarChart");
+    if (chart && data.hourly_impressions) {
+        const maxVal = Math.max(...data.hourly_impressions.map(h => h.impr), 100);
+        chart.innerHTML = data.hourly_impressions.map(h => {
+            const hPct = Math.max(15, (h.impr / maxVal) * 85);
+            return `
+                <div class="chart-bar-col">
+                    <span style="font-size: 8px; color: #38bdf8; font-weight: 700;">${h.impr}</span>
+                    <div class="chart-bar-fill" style="height: ${hPct}%;"></div>
+                    <span class="chart-bar-label">${h.hour}</span>
+                </div>
+            `;
+        }).join('');
+    }
+}
+
+// Expose all functions on window for inline HTML onclick handlers
+window.openRagVaultDrawer = openRagVaultDrawer;
+window.closeRagVaultDrawer = closeRagVaultDrawer;
+window.triggerRagRetrievalBeam = triggerRagRetrievalBeam;
+window.openBudgetBreakerModal = openBudgetBreakerModal;
+window.closeBudgetBreakerModal = closeBudgetBreakerModal;
+window.updateBudgetSliderUI = updateBudgetSliderUI;
+window.saveBudgetLimit = saveBudgetLimit;
+window.toggleCircuitBreakerState = toggleCircuitBreakerState;
+window.openAgentSkillTreeModal = openAgentSkillTreeModal;
+window.closeAgentSkillTreeModal = closeAgentSkillTreeModal;
+window.switchRpgAgentTab = switchRpgAgentTab;
+window.simulateAgentTaskXp = simulateAgentTaskXp;
+window.saveAgentRpgConfig = saveAgentRpgConfig;
+window.openLinkedInAnalyticsDrawer = openLinkedInAnalyticsDrawer;
+window.closeLinkedInAnalyticsDrawer = closeLinkedInAnalyticsDrawer;
+window.simulateLinkedInViralSpike = simulateLinkedInViralSpike;
+
 // --- 8. Event Listeners & Initialization ---
 document.addEventListener("DOMContentLoaded", () => {
     // Initialize 2D Canvas Engine
@@ -4414,5 +7204,107 @@ document.addEventListener("DOMContentLoaded", () => {
 
     const btnToggleBuilder = document.getElementById("btnToggleBuilder");
     if (btnToggleBuilder) btnToggleBuilder.addEventListener("click", toggleBuilderMode);
+
+    // Header Intercom & War Room Buttons
+    const btnOpenIntercom = document.getElementById("btnOpenIntercom");
+    if (btnOpenIntercom) btnOpenIntercom.addEventListener("click", openSpatialIntercom);
+
+    const btnWarRoomToggle = document.getElementById("btnWarRoomToggle");
+    if (btnWarRoomToggle) {
+        btnWarRoomToggle.addEventListener("click", () => {
+            if (window.officeEngine && window.officeEngine.isWarRoomActive) {
+                resolveWarRoomIncident();
+            } else {
+                triggerWarRoomIncident('pulse', 'Gemini Token Limit Exceeded / High Latency Alert');
+            }
+        });
+    }
+
+    // Camera Bar Neuro & Memo Buttons
+    const btnToggleNeuro = document.getElementById("btnToggleNeuro");
+    if (btnToggleNeuro) btnToggleNeuro.addEventListener("click", toggleNeuroVision);
+
+    const btnToggleMemos = document.getElementById("btnToggleMemos");
+    if (btnToggleMemos) btnToggleMemos.addEventListener("click", openStickyMemoModal);
+
+    // 4 New Camera Toolbar Buttons
+    const btnToggleVaultDrawer = document.getElementById("btnToggleVaultDrawer");
+    if (btnToggleVaultDrawer) btnToggleVaultDrawer.addEventListener("click", openRagVaultDrawer);
+
+    const btnToggleBreakerModal = document.getElementById("btnToggleBreakerModal");
+    if (btnToggleBreakerModal) btnToggleBreakerModal.addEventListener("click", openBudgetBreakerModal);
+
+    const btnToggleSkillsModal = document.getElementById("btnToggleSkillsModal");
+    if (btnToggleSkillsModal) btnToggleSkillsModal.addEventListener("click", () => openAgentSkillTreeModal('scout'));
+
+    const btnToggleLinkedInDrawer = document.getElementById("btnToggleLinkedInDrawer");
+    if (btnToggleLinkedInDrawer) btnToggleLinkedInDrawer.addEventListener("click", openLinkedInAnalyticsDrawer);
+
+    // Intercom Modal Buttons & Inputs
+    const btnIntercomSend = document.getElementById("btnIntercomSend");
+    if (btnIntercomSend) btnIntercomSend.addEventListener("click", sendIntercomCommand);
+
+    const intercomInput = document.getElementById("intercomInput");
+    if (intercomInput) {
+        intercomInput.addEventListener("keydown", (e) => {
+            if (e.key === "Enter") {
+                e.preventDefault();
+                sendIntercomCommand();
+            }
+        });
+    }
+
+    const btnIntercomMic = document.getElementById("btnIntercomMic");
+    if (btnIntercomMic) {
+        btnIntercomMic.addEventListener("click", () => {
+            sfx.playClick();
+            const samples = [
+                "Scout, tahan scraping berita kripto, prioritaskan berita open-source AI hari ini.",
+                "Pulse, ringkas draf lebih pendek maksimal 150 kata.",
+                "Boss, setujui draf konten nomor 1 segera.",
+                "Link, aktifkan mode dry-run simulasi broadcast."
+            ];
+            const picked = samples[Math.floor(Math.random() * samples.length)];
+            if (intercomInput) {
+                intercomInput.value = picked;
+                showToast(`🎙️ Voice Dictated: "${picked}"`, "info");
+                setTimeout(sendIntercomCommand, 400);
+            }
+        });
+    }
+
+    // Modal Close Buttons Handlers
+    const btnCloseStickyMemo = document.getElementById("btnCloseStickyMemo");
+    if (btnCloseStickyMemo) btnCloseStickyMemo.addEventListener("click", closeStickyMemoModal);
+
+    const stickyMemoModalBackdrop = document.getElementById("stickyMemoModalBackdrop");
+    if (stickyMemoModalBackdrop) stickyMemoModalBackdrop.addEventListener("click", closeStickyMemoModal);
+
+    const btnCloseIntercom = document.getElementById("btnCloseIntercom");
+    if (btnCloseIntercom) btnCloseIntercom.addEventListener("click", closeIntercomModal);
+
+    const intercomModalBackdrop = document.getElementById("intercomModalBackdrop");
+    if (intercomModalBackdrop) intercomModalBackdrop.addEventListener("click", closeIntercomModal);
+
+    // Close handlers for 4 new modals
+    const btnCloseRagVault = document.getElementById("btnCloseRagVault");
+    if (btnCloseRagVault) btnCloseRagVault.addEventListener("click", closeRagVaultDrawer);
+    const ragVaultBackdrop = document.getElementById("ragVaultBackdrop");
+    if (ragVaultBackdrop) ragVaultBackdrop.addEventListener("click", closeRagVaultDrawer);
+
+    const btnCloseBreakerModal = document.getElementById("btnCloseBreakerModal");
+    if (btnCloseBreakerModal) btnCloseBreakerModal.addEventListener("click", closeBudgetBreakerModal);
+    const budgetBreakerBackdrop = document.getElementById("budgetBreakerBackdrop");
+    if (budgetBreakerBackdrop) budgetBreakerBackdrop.addEventListener("click", closeBudgetBreakerModal);
+
+    const btnCloseSkillTreeModal = document.getElementById("btnCloseSkillTreeModal");
+    if (btnCloseSkillTreeModal) btnCloseSkillTreeModal.addEventListener("click", closeAgentSkillTreeModal);
+    const agentSkillTreeBackdrop = document.getElementById("agentSkillTreeBackdrop");
+    if (agentSkillTreeBackdrop) agentSkillTreeBackdrop.addEventListener("click", closeAgentSkillTreeModal);
+
+    const btnCloseLinkedInDrawer = document.getElementById("btnCloseLinkedInDrawer");
+    if (btnCloseLinkedInDrawer) btnCloseLinkedInDrawer.addEventListener("click", closeLinkedInAnalyticsDrawer);
+    const linkedinAnalyticsBackdrop = document.getElementById("linkedinAnalyticsBackdrop");
+    if (linkedinAnalyticsBackdrop) linkedinAnalyticsBackdrop.addEventListener("click", closeLinkedInAnalyticsDrawer);
 });
 
